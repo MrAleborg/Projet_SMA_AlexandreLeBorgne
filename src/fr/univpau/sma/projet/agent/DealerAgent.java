@@ -42,6 +42,8 @@ public class DealerAgent extends Agent {
 		agentD_behaviour.registerTransition(attribute, give, MarketAgent.toGive);
 		agentD_behaviour.registerTransition(give, end, MarketAgent.toPay);
 		
+		addBehaviour(agentD_behaviour);
+		
 	}
 	
 	private class RegisterAtMarket extends OneShotBehaviour {
