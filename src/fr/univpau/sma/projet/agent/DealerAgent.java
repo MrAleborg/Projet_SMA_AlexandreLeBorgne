@@ -4,10 +4,12 @@ import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.FSMBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
+import jade.core.behaviours.ThreadedBehaviourFactory;
 
 public class DealerAgent extends Agent {
 	
 	private FSMBehaviour agentD_behaviour;
+	private ThreadedBehaviourFactory tbf;
 	
 	private static final String register = "registerAtMarket";
 	private static final String waitfortakers = "waitForTaker";
@@ -16,7 +18,6 @@ public class DealerAgent extends Agent {
 	private static final String attribute = "attribute";
 	private static final String give = "give";
 	private static final String end = "end";
-	
 	
 	
 	public void setup(){
@@ -42,7 +43,11 @@ public class DealerAgent extends Agent {
 		agentD_behaviour.registerTransition(attribute, give, MarketAgent.toGive);
 		agentD_behaviour.registerTransition(give, end, MarketAgent.toPay);
 		
-		addBehaviour(agentD_behaviour);
+		tbf = new ThreadedBehaviourFactory();
+		
+		addBehaviour(tbf.wrap(agentD_behaviour));
+		
+		
 		
 	}
 	
@@ -50,8 +55,13 @@ public class DealerAgent extends Agent {
 
 		@Override
 		public void action() {
-			// TODO Auto-generated method stub
+			System.out.println("Le dealer paye sa licence pour vendre ses trucs");
 			
+		}
+		
+		@Override
+		public int onEnd() {
+			return MarketAgent.registerEvent;
 		}
 		
 	}
@@ -60,7 +70,7 @@ public class DealerAgent extends Agent {
 
 		@Override
 		public void action() {
-			// TODO Auto-generated method stub
+			System.out.println("Le dealer attend ses premiers clients...");
 			
 		}
 		

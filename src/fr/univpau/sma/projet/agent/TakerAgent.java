@@ -53,6 +53,11 @@ public class TakerAgent extends Agent {
 			
 		}
 		
+		@Override
+		public int onEnd() {
+			return MarketAgent.registerEvent;
+		}
+		
 	}
 	
 	private class WaitForAuction extends OneShotBehaviour {
@@ -63,6 +68,11 @@ public class TakerAgent extends Agent {
 			
 		}
 		
+		@Override
+		public int onEnd() {
+			return MarketAgent.auctionSpotted;
+		}
+		
 	}
 	
 	private class waitForAnnounce extends OneShotBehaviour {
@@ -71,6 +81,12 @@ public class TakerAgent extends Agent {
 		public void action() {
 			// TODO Auto-generated method stub
 			
+		}
+		
+		@Override
+		public int onEnd() {
+			// TODO Auto-generated method stub
+			return super.onEnd();
 		}
 		
 	}
