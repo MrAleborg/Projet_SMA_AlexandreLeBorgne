@@ -1,15 +1,25 @@
 package fr.univpau.sma.projet.agent;
 
+import fr.univpau.sma.projet.agent.behaviour.dealer.RegisterAtMarket;
+import fr.univpau.sma.projet.objects.Auction;
+import fr.univpau.sma.projet.objects.ProtocolMessage;
+import jade.core.AID;
 import jade.core.Agent;
-import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.FSMBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.ThreadedBehaviourFactory;
+import jade.domain.DFService;
+import jade.domain.FIPAException;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
 
+@SuppressWarnings("serial")
 public class DealerAgent extends Agent {
 	
 	private FSMBehaviour agentD_behaviour;
 	private ThreadedBehaviourFactory tbf;
+	private AID _market;
+	private Auction _PorposedAuction = null;
 	
 	private static final String register = "registerAtMarket";
 	private static final String waitfortakers = "waitForTaker";
@@ -26,7 +36,7 @@ public class DealerAgent extends Agent {
 		
 		agentD_behaviour = new FSMBehaviour();
 		
-		agentD_behaviour.registerFirstState(new RegisterAtMarket(), register);
+		agentD_behaviour.registerFirstState(new RegisterAtMarket(this), register);
 		agentD_behaviour.registerState(new WaitForTakers(), waitfortakers);
 		agentD_behaviour.registerState(new Announce(), announce);
 		agentD_behaviour.registerState(new WaitForBids(), waitforbids);
@@ -34,38 +44,50 @@ public class DealerAgent extends Agent {
 		agentD_behaviour.registerState(new Give(), give);
 		agentD_behaviour.registerLastState(new End(), end);
 		
-		agentD_behaviour.registerTransition(register, waitfortakers, MarketAgent.registerEvent);
-		agentD_behaviour.registerTransition(waitfortakers, announce, MarketAgent.takerSubscribed);
-		agentD_behaviour.registerTransition(announce, waitforbids, MarketAgent.toAnnounce);
-		agentD_behaviour.registerTransition(waitforbids, waitforbids, MarketAgent.toAnnounce);
-		agentD_behaviour.registerTransition(waitforbids, waitforbids, MarketAgent.toBid);
-		agentD_behaviour.registerTransition(waitforbids, attribute, MarketAgent.toAttribute);
-		agentD_behaviour.registerTransition(attribute, give, MarketAgent.toGive);
-		agentD_behaviour.registerTransition(give, end, MarketAgent.toPay);
+		agentD_behaviour.registerTransition(register, waitfortakers, ProtocolMessage.registerEvent);
+		agentD_behaviour.registerTransition(waitfortakers, announce, ProtocolMessage.takerSubscribed);
+		agentD_behaviour.registerTransition(announce, waitforbids, ProtocolMessage.toAnnounce);
+		agentD_behaviour.registerTransition(waitforbids, waitforbids, ProtocolMessage.toAnnounce);
+		agentD_behaviour.registerTransition(waitforbids, waitforbids, ProtocolMessage.toBid);
+		agentD_behaviour.registerTransition(waitforbids, attribute, ProtocolMessage.toAttribute);
+		agentD_behaviour.registerTransition(attribute, give, ProtocolMessage.toGive);
+		agentD_behaviour.registerTransition(give, end, ProtocolMessage.toPay);
 		
 		tbf = new ThreadedBehaviourFactory();
 		
 		addBehaviour(tbf.wrap(agentD_behaviour));
 		
-		
+		DFAgentDescription template = new DFAgentDescription();
+		ServiceDescription sd = new ServiceDescription();
+		sd.setType(MarketAgent.marketType);
+		template.addServices(sd);
+		try
+		{
+			DFAgentDescription[] result = DFService.search(this, template);
+			set_market(result[0].getName());
+		}
+		catch (FIPAException e){
+			e.printStackTrace();
+		}
 		
 	}
 	
-	private class RegisterAtMarket extends OneShotBehaviour {
+	public AID get_market() {
+		return _market;
+	}
 
-		@Override
-		public void action() {
-			System.out.println("Le dealer paye sa licence pour vendre ses trucs");
-			
-		}
-		
-		@Override
-		public int onEnd() {
-			return MarketAgent.registerEvent;
-		}
-		
+	public void set_market(AID _market) {
+		this._market = _market;
 	}
-	
+
+	public Auction get_PorposedAuction() {
+		return _PorposedAuction;
+	}
+
+	public void set_PorposedAuction(Auction _PorposedAuction) {
+		this._PorposedAuction = _PorposedAuction;
+	}
+
 	private class WaitForTakers extends OneShotBehaviour {
 
 		@Override

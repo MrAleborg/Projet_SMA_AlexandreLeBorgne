@@ -1,12 +1,28 @@
 package fr.univpau.sma.projet.agent;
 
+import java.util.List;
+
+import fr.univpau.sma.projet.objects.Auction;
+import fr.univpau.sma.projet.objects.ProtocolMessage;
+import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.FSMBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
+import jade.core.behaviours.ThreadedBehaviourFactory;
+import jade.domain.DFService;
+import jade.domain.FIPAException;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.lang.acl.UnreadableException;
 
+@SuppressWarnings("serial")
 public class TakerAgent extends Agent {
 	
 	private FSMBehaviour agentT_behaviour;
+	private List<Auction> _Auctions = null;
+	private List<Auction> _ChosenAuctions = null;
+	private ThreadedBehaviourFactory tbf = null;
+	private AID _market;
 	
 	private static final String register = "registerAtMarket";
 	private static final String waitforauction = "waitForAuction";
@@ -32,30 +48,77 @@ public class TakerAgent extends Agent {
 		agentT_behaviour.registerState(new Pay(), pay);
 		agentT_behaviour.registerLastState(new End(), end);
 		
-		agentT_behaviour.registerTransition(register, waitforauction, MarketAgent.registerEvent);
-		agentT_behaviour.registerTransition(waitforauction, waitforannounce, MarketAgent.auctionSpotted);
-		agentT_behaviour.registerTransition(waitforannounce, bid, MarketAgent.toAnnounce);
-		agentT_behaviour.registerTransition(bid, bid, MarketAgent.toAnnounce);
-		agentT_behaviour.registerTransition(bid, waitforattribute, MarketAgent.toBid);
-		agentT_behaviour.registerTransition(waitforattribute, waitforgive, MarketAgent.toAttribute);
-		agentT_behaviour.registerTransition(waitforgive, pay, MarketAgent.toGive);
-		agentT_behaviour.registerTransition(pay, end, MarketAgent.toPay);
+		agentT_behaviour.registerTransition(register, waitforauction, ProtocolMessage.registerEvent);
+		agentT_behaviour.registerTransition(waitforauction, waitforannounce, ProtocolMessage.auctionSpotted);
+		agentT_behaviour.registerTransition(waitforannounce, bid, ProtocolMessage.toAnnounce);
+		agentT_behaviour.registerTransition(bid, bid, ProtocolMessage.toAnnounce);
+		agentT_behaviour.registerTransition(bid, waitforattribute, ProtocolMessage.toBid);
+		agentT_behaviour.registerTransition(waitforattribute, waitforgive, ProtocolMessage.toAttribute);
+		agentT_behaviour.registerTransition(waitforgive, pay, ProtocolMessage.toGive);
+		agentT_behaviour.registerTransition(pay, end, ProtocolMessage.toPay);
 		
-		addBehaviour(agentT_behaviour);
+		tbf = new ThreadedBehaviourFactory();
+		
+		addBehaviour(tbf.wrap(agentT_behaviour));
+		
+		DFAgentDescription template = new DFAgentDescription();
+		ServiceDescription sd = new ServiceDescription();
+		sd.setType(MarketAgent.marketType);
+		template.addServices(sd);
+		try
+		{
+			DFAgentDescription[] result = DFService.search(this, template);
+			set_market(result[0].getName());
+		}
+		catch (FIPAException e){
+			e.printStackTrace();
+		}
 		
 	}
 	
+	public AID get_market() {
+		return _market;
+	}
+
+	public void set_market(AID _market) {
+		this._market = _market;
+	}
+
+	public List<Auction> get_ChosenAuctions() {
+		return _ChosenAuctions;
+	}
+
+	public void set_ChosenAuctions(List<Auction> _ChosenAuctions) {
+		this._ChosenAuctions = _ChosenAuctions;
+	}
+
+	public List<Auction> get_Auctions() {
+		return _Auctions;
+	}
+
+	public void set_Auctions(List<Auction> _Auctions) {
+		this._Auctions = _Auctions;
+	}
+
 	private class RegisterAtMarket extends OneShotBehaviour {
 
 		@Override
 		public void action() {
-			// TODO Auto-generated method stub
+			System.out.println("Le taker n'est pas stressé, il arrive au marché les mains dans les poches...");
+			ProtocolMessage message = new ProtocolMessage(ProtocolMessage.taker);
+			message.addReceiver(_market);
+			message.setPerformative(ProtocolMessage.registerEvent);
+			send(message);
 			
 		}
 		
 		@Override
 		public int onEnd() {
-			return MarketAgent.registerEvent;
+			ProtocolMessage message = null;
+			while(message == null){
+				message = (ProtocolMessage) receive();
+			}
+			return message.getPerformative();
 		}
 		
 	}
@@ -64,13 +127,22 @@ public class TakerAgent extends Agent {
 
 		@Override
 		public void action() {
-			// TODO Auto-generated method stub
+			System.out.println("le taker attend de trouver de bonnes enchères");
+			ProtocolMessage m = (ProtocolMessage) receive();
+			if(m!=null)
+				try {
+					System.out.println("message reçu : " + m.getContentObject().toString());
+				} catch (UnreadableException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			else block();
 			
 		}
 		
 		@Override
 		public int onEnd() {
-			return MarketAgent.auctionSpotted;
+			return ProtocolMessage.auctionSpotted;
 		}
 		
 	}
@@ -79,7 +151,7 @@ public class TakerAgent extends Agent {
 
 		@Override
 		public void action() {
-			// TODO Auto-generated method stub
+			System.out.println("Le Taker attend une annonce...");
 			
 		}
 		
