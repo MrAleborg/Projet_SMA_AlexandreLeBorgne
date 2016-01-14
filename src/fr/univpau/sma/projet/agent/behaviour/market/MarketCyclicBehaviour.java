@@ -1,6 +1,7 @@
 package fr.univpau.sma.projet.agent.behaviour.market;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 
@@ -63,11 +64,23 @@ public class MarketCyclicBehaviour extends CyclicBehaviour {
 							 _Takers.add(sender);
 							 _marketAgent.set_Takers(_Takers);
 							System.out.println("Taker enregistré dans le market");
+							 subscription.addReceiver(sender);
+							 this._marketAgent.send(subscription);
+							 if(!this._marketAgent.get_Auctions().isEmpty())
+							 {
+								 System.out.println("Envoi des enchères");
+								 ProtocolMessage auctionMessage = new ProtocolMessage();
+								 auctionMessage.addReceiver(sender);
+								 try {
+									auctionMessage.setContentObject((Serializable) this._marketAgent.get_Auctions());
+									auctionMessage.setPerformative(ProtocolMessage.auctionSpotted);
+									this._marketAgent.send(auctionMessage);
+								} catch (IOException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+							 }
 						 }
-						 subscription.addReceiver(sender);
-						 this._marketAgent.send(subscription);
-						 
-						 
 					 }
 					 else if(msgStr.equals(ProtocolMessage.dealer))
 					 {

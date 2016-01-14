@@ -10,6 +10,7 @@ import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.FSMBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
+import jade.core.behaviours.ParallelBehaviour;
 import jade.core.behaviours.ThreadedBehaviourFactory;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
@@ -21,6 +22,7 @@ import jade.lang.acl.UnreadableException;
 public class TakerAgent extends Agent {
 	
 	private FSMBehaviour agentT_behaviour;
+	private ParallelBehaviour _ParallelAuctions = null;
 	private List<Auction> _Auctions = null;
 	private List<Auction> _ChosenAuctions = null;
 	private ThreadedBehaviourFactory tbf = null;
@@ -78,7 +80,6 @@ public class TakerAgent extends Agent {
 			e.printStackTrace();
 		}
 		
-
 		addBehaviour(new RegisterAtMarket());
 		
 	}
@@ -139,18 +140,21 @@ public class TakerAgent extends Agent {
 			ProtocolMessage m = null;
 			
 			// Reception de la liste des enchères
-			m = (ProtocolMessage) receive();
+			m = (ProtocolMessage) blockingReceive();
 			if(m!=null && m.getPerformative() == ProtocolMessage.auctionSpotted)
 			{
+				System.out.println("Taker récupère les enchères");
 				try {
 					_Auctions = (List<Auction>) m.getContentObject();
 				} catch (UnreadableException e) {
 					e.printStackTrace();
 				}
+				System.out.println("ENCHERES : " + _Auctions.size());
 				
 				// Souscription aux enchères
-				if(_Auctions != null || !_Auctions.isEmpty())
+				if(_Auctions != null && !_Auctions.isEmpty())
 				{
+					System.out.println("Taker veut souscrire à une ou plusieurs enchères");
 					if(!(_ChosenAuctions==null))
 					{
 						for (Auction auction : _ChosenAuctions) {
@@ -168,6 +172,7 @@ public class TakerAgent extends Agent {
 						{
 							tempList.add(_Auctions.get(auctionToSubscribe-1));
 						}
+						i++;
 					}
 					System.out.println("Taker a choisi les enchères auxquelles il veut participer");
 				}
@@ -177,11 +182,6 @@ public class TakerAgent extends Agent {
 			else block();
 			
 		}
-		
-//		@Override
-//		public int onEnd() {
-//			return ProtocolMessage.auctionSpotted;
-//		}
 		
 	}
 	
