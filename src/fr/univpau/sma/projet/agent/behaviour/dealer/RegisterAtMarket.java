@@ -33,14 +33,16 @@ public class RegisterAtMarket extends OneShotBehaviour {
 		this._ProposedAuction = new Auction(10, 10, 1, 2, 1, "truc", this._DealerAgent.getLocalName(), 0);
 		ProtocolMessage message = new ProtocolMessage(ProtocolMessage.dealer);
 		message.addReceiver(_market);
+		System.out.println(_market.getName());
 		message.setPerformative(ProtocolMessage.registerEvent);
-		System.out.println("market : " + _market.getName());
+		//System.out.println("market : " + _market.getName());
 		try {
 			message.setContentObject(this._ProposedAuction);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		this._DealerAgent.send(message);
+		System.out.println("Attente de réponse du market");
 	}
 	
 	@Override

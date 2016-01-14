@@ -1,11 +1,13 @@
 package fr.univpau.sma.projet.agent;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import fr.univpau.sma.projet.objects.Auction;
 import fr.univpau.sma.projet.objects.ProtocolMessage;
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.FSMBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.ThreadedBehaviourFactory;
@@ -23,6 +25,7 @@ public class TakerAgent extends Agent {
 	private List<Auction> _ChosenAuctions = null;
 	private ThreadedBehaviourFactory tbf = null;
 	private AID _market;
+	private int lower = 1;
 	
 	private static final String register = "registerAtMarket";
 	private static final String waitforauction = "waitForAuction";
@@ -39,17 +42,18 @@ public class TakerAgent extends Agent {
 		
 		agentT_behaviour = new FSMBehaviour();
 		
-		agentT_behaviour.registerFirstState(new RegisterAtMarket(), register);
-		agentT_behaviour.registerState(new WaitForAuction(), waitforauction);
-		agentT_behaviour.registerState(new waitForAnnounce(), waitforannounce);
+//		agentT_behaviour.registerFirstState(new RegisterAtMarket(), register);
+//		agentT_behaviour.registerState(new WaitForAuction(), waitforauction);
+//		agentT_behaviour.registerState(new waitForAnnounce(), waitforannounce);
+		agentT_behaviour.registerFirstState(new waitForAnnounce(), waitforannounce);
 		agentT_behaviour.registerState(new Bid(), bid);
 		agentT_behaviour.registerState(new WaitForAttribute(), waitforattribute);
 		agentT_behaviour.registerState(new WaitForGive(), waitforgive);
 		agentT_behaviour.registerState(new Pay(), pay);
 		agentT_behaviour.registerLastState(new End(), end);
 		
-		agentT_behaviour.registerTransition(register, waitforauction, ProtocolMessage.registerEvent);
-		agentT_behaviour.registerTransition(waitforauction, waitforannounce, ProtocolMessage.auctionSpotted);
+//		agentT_behaviour.registerTransition(register, waitforauction, ProtocolMessage.registerEvent);
+//		agentT_behaviour.registerTransition(waitforauction, waitforannounce, ProtocolMessage.auctionSpotted);
 		agentT_behaviour.registerTransition(waitforannounce, bid, ProtocolMessage.toAnnounce);
 		agentT_behaviour.registerTransition(bid, bid, ProtocolMessage.toAnnounce);
 		agentT_behaviour.registerTransition(bid, waitforattribute, ProtocolMessage.toBid);
@@ -57,9 +61,9 @@ public class TakerAgent extends Agent {
 		agentT_behaviour.registerTransition(waitforgive, pay, ProtocolMessage.toGive);
 		agentT_behaviour.registerTransition(pay, end, ProtocolMessage.toPay);
 		
-		tbf = new ThreadedBehaviourFactory();
+		//tbf = new ThreadedBehaviourFactory();
 		
-		addBehaviour(tbf.wrap(agentT_behaviour));
+		//addBehaviour(tbf.wrap(agentT_behaviour));
 		
 		DFAgentDescription template = new DFAgentDescription();
 		ServiceDescription sd = new ServiceDescription();
@@ -73,6 +77,9 @@ public class TakerAgent extends Agent {
 		catch (FIPAException e){
 			e.printStackTrace();
 		}
+		
+
+		addBehaviour(new RegisterAtMarket());
 		
 	}
 	
@@ -118,32 +125,63 @@ public class TakerAgent extends Agent {
 			while(message == null){
 				message = (ProtocolMessage) receive();
 			}
+			addBehaviour(new WaitForAuction());
 			return message.getPerformative();
 		}
 		
 	}
 	
-	private class WaitForAuction extends OneShotBehaviour {
+	private class WaitForAuction extends CyclicBehaviour {
 
 		@Override
 		public void action() {
 			System.out.println("le taker attend de trouver de bonnes enchères");
-			ProtocolMessage m = (ProtocolMessage) receive();
-			if(m!=null)
+			ProtocolMessage m = null;
+			
+			// Reception de la liste des enchères
+			m = (ProtocolMessage) receive();
+			if(m!=null && m.getPerformative() == ProtocolMessage.auctionSpotted)
+			{
 				try {
-					System.out.println("message reçu : " + m.getContentObject().toString());
+					_Auctions = (List<Auction>) m.getContentObject();
 				} catch (UnreadableException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				
+				// Souscription aux enchères
+				if(_Auctions != null || !_Auctions.isEmpty())
+				{
+					if(!(_ChosenAuctions==null))
+					{
+						for (Auction auction : _ChosenAuctions) {
+							_Auctions.remove(auction);
+						}
+						lower = 0;
+					}
+					int nbAuctionToSubscribe = (int) (Math.random() * (_Auctions.size()-lower)) + lower;
+					List<Auction> tempList = new ArrayList<Auction>();
+					int i=0;
+					while(i<nbAuctionToSubscribe)
+					{
+						int auctionToSubscribe = (int) (Math.random() * (_Auctions.size()-1) +1);
+						if(!tempList.contains(_Auctions.get(auctionToSubscribe-1)))
+						{
+							tempList.add(_Auctions.get(auctionToSubscribe-1));
+						}
+					}
+					System.out.println("Taker a choisi les enchères auxquelles il veut participer");
+				}
+				else System.out.println("_Auctions is EMPTY!!!");
+				
+			}
 			else block();
 			
 		}
 		
-		@Override
-		public int onEnd() {
-			return ProtocolMessage.auctionSpotted;
-		}
+//		@Override
+//		public int onEnd() {
+//			return ProtocolMessage.auctionSpotted;
+//		}
 		
 	}
 	

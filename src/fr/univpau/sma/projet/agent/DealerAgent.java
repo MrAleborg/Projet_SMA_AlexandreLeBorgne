@@ -32,6 +32,20 @@ public class DealerAgent extends Agent {
 	
 	public void setup(){
 		System.out.println("Agent Dealer prépare sa dope");
+		
+		DFAgentDescription template = new DFAgentDescription();
+		ServiceDescription sd = new ServiceDescription();
+		sd.setType(MarketAgent.marketType);
+		template.addServices(sd);
+		try
+		{
+			DFAgentDescription[] result = DFService.search(this, template);
+			set_market(result[0].getName());
+		}
+		catch (FIPAException e){
+			e.printStackTrace();
+		}
+		
 		System.out.println("Agent Dealer va commencer à initialiser la state machine");
 		
 		agentD_behaviour = new FSMBehaviour();
@@ -55,20 +69,11 @@ public class DealerAgent extends Agent {
 		
 		tbf = new ThreadedBehaviourFactory();
 		
-		addBehaviour(tbf.wrap(agentD_behaviour));
 		
-		DFAgentDescription template = new DFAgentDescription();
-		ServiceDescription sd = new ServiceDescription();
-		sd.setType(MarketAgent.marketType);
-		template.addServices(sd);
-		try
-		{
-			DFAgentDescription[] result = DFService.search(this, template);
-			set_market(result[0].getName());
-		}
-		catch (FIPAException e){
-			e.printStackTrace();
-		}
+		
+		
+
+		addBehaviour(tbf.wrap(agentD_behaviour));
 		
 	}
 	

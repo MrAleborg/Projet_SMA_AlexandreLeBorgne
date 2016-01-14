@@ -6,8 +6,9 @@ import jade.lang.acl.ACLMessage;
 public class ProtocolMessage extends ACLMessage {
 
 	public static final int registerEvent = ACLMessage.SUBSCRIBE;
-	public static final int takerSubscribed = 100;
-	public static final int auctionSpotted = 101;
+	public static final int getAuctions = 100;
+	public static final int takerSubscribed = 101;
+	public static final int auctionSpotted = 102;
 	public static final int toAnnounce = ACLMessage.CFP;
 	public static final int toBid = ACLMessage.PROPOSE;
 	public static final int toAttribute = ACLMessage.ACCEPT_PROPOSAL;

@@ -19,16 +19,18 @@ public class MarketAgent extends Agent {
 	
 	private String _AgentName = "";
 	private AID _AgentAID = null;
-	private List<AID> _Dealers;
-	private List<AID> _Takers;
-	private HashMap<AID, Auction> _ProposedAuctions;
-	private HashMap<AID, Auction> _ParticipatingTakers;
+	private List<AID> _Dealers = null;
+	private List<AID> _Takers = null;
+	private List<Auction> _Auctions = null;
+	private HashMap<AID, Auction> _ProposedAuctions = null;
+	private HashMap<AID, Auction> _ParticipatingTakers = null;
 	
 	@Override
 	public void setup() {
 		super.setup();
 		this._Dealers = new ArrayList<AID>();
 		this._Takers = new ArrayList<AID>();
+		this.set_Auctions(new ArrayList<Auction>());
 		this._ProposedAuctions = new HashMap<AID, Auction>();
 		this._ParticipatingTakers = new HashMap<AID, Auction>();
 		_AgentAID = getAID();
@@ -118,6 +120,14 @@ public class MarketAgent extends Agent {
 
 	public void set_ParticipatingTakers(HashMap<AID, Auction> _ParticipatingTakers) {
 		this._ParticipatingTakers = _ParticipatingTakers;
+	}
+
+	public List<Auction> get_Auctions() {
+		return _Auctions;
+	}
+
+	public void set_Auctions(List<Auction> _Auctions) {
+		this._Auctions = _Auctions;
 	}
 	
 }
