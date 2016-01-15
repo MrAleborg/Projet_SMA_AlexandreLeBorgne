@@ -1,5 +1,7 @@
 package fr.univpau.sma.projet.agent;
 
+import java.util.List;
+
 import fr.univpau.sma.projet.agent.behaviour.dealer.RegisterAtMarket;
 import fr.univpau.sma.projet.objects.Auction;
 import fr.univpau.sma.projet.objects.ProtocolMessage;
@@ -21,6 +23,7 @@ public class DealerAgent extends Agent {
 	private AID _market;
 	private Auction _PorposedAuction = null;
 	private boolean _FirstAnnounce = true;
+	private List<AID> _RegisteredTakers = null;
 	
 	private static final String register = "registerAtMarket";
 	private static final String waitfortakers = "waitForTaker";
