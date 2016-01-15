@@ -1,5 +1,6 @@
 package fr.univpau.sma.projet.objects;
 
+import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 
 @SuppressWarnings({ "deprecation", "serial" })
@@ -19,6 +20,7 @@ public class ProtocolMessage extends ACLMessage {
 	public static final String dealer = "dealer";
 	
 	private String _Message = null;
+	private AID _Source;
 	
 	public ProtocolMessage() {
 	}
@@ -33,6 +35,14 @@ public class ProtocolMessage extends ACLMessage {
 
 	public void set_Message(String _Message) {
 		this._Message = _Message;
+	}
+
+	public AID get_Source() {
+		return _Source;
+	}
+
+	public void set_Source(AID _Source) {
+		this._Source = _Source;
 	}
 	
 }

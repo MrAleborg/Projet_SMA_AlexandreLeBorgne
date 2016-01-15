@@ -1,5 +1,6 @@
 package fr.univpau.sma.projet.agent;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import fr.univpau.sma.projet.agent.behaviour.dealer.RegisterAtMarket;
@@ -7,6 +8,7 @@ import fr.univpau.sma.projet.objects.Auction;
 import fr.univpau.sma.projet.objects.ProtocolMessage;
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.FSMBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.ThreadedBehaviourFactory;
@@ -36,6 +38,8 @@ public class DealerAgent extends Agent {
 	
 	public void setup(){
 		System.out.println("Agent Dealer prépare sa dope");
+		
+		_RegisteredTakers = new ArrayList<AID>();
 		
 		DFAgentDescription template = new DFAgentDescription();
 		ServiceDescription sd = new ServiceDescription();
@@ -74,7 +78,16 @@ public class DealerAgent extends Agent {
 		tbf = new ThreadedBehaviourFactory();
 		addBehaviour(tbf.wrap(agentD_behaviour));
 		
+		
 	}
+
+	@Override
+	protected void takeDown() {
+		tbf.interrupt();
+		super.takeDown();
+	}
+	
+	
 	
 	public AID get_market() {
 		return _market;
@@ -104,6 +117,7 @@ public class DealerAgent extends Agent {
 
 
 		ProtocolMessage start = null;
+		ThreadedBehaviourFactory thbf = null;
 		
 		@Override
 		public void action() {
@@ -112,12 +126,45 @@ public class DealerAgent extends Agent {
 			{
 				start = (ProtocolMessage) blockingReceive();
 			}while(start == null || start.getPerformative() != ProtocolMessage.takerSubscribed);
+			_RegisteredTakers.add(start.get_Source());
 			System.out.println("Le dealer fait connaissance avec ses premiers clients, il va commencer l'enchère");
+			thbf = new ThreadedBehaviourFactory();
+			addBehaviour(thbf.wrap(new WaitForNewTaker()));
 		}
 		
 		@Override
 		public int onEnd() {
 			return start.getPerformative();
+		}
+		
+		@Override
+		protected void finalize() throws Throwable {
+			thbf.interrupt();
+			super.finalize();
+		}
+		
+	}
+	
+	private class WaitForNewTaker extends CyclicBehaviour {
+		
+		ProtocolMessage start = null;
+		
+		@Override
+		public void action() {
+			if(agentD_behaviour.getExecutionState() == attribute || agentD_behaviour.getExecutionState() == give || agentD_behaviour.getExecutionState() == end)
+				try {
+					System.out.println("Le dealer fait maintenant la sourde oreille aux nouveaux arrivants qui ralent d'être arrivés en retard...");
+					this.finalize();
+				} catch (Throwable e) {
+					e.printStackTrace();
+				}
+			System.out.println("Le dealer reste à l'écoute des nouveaux arrivants");
+			do
+			{
+				start = (ProtocolMessage) blockingReceive();
+			}while(start == null || start.getPerformative() != ProtocolMessage.takerSubscribed);
+			_RegisteredTakers.add(start.get_Source());
+			
 		}
 		
 	}
@@ -127,7 +174,7 @@ public class DealerAgent extends Agent {
 		@Override
 		public void action() {
 			System.out.println("C'est parti pour une vente de folie!!! le dealer fait sa première annonce!!!");
-			
+			while(true){}
 		}
 		
 	}

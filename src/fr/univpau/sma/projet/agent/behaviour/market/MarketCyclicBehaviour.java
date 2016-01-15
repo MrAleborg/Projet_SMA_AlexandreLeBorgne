@@ -138,6 +138,7 @@ public class MarketCyclicBehaviour extends CyclicBehaviour {
 					// Préparation du message devant avertir les dealers de l'arrivée d'un nouveau preneur
 					ProtocolMessage takerSubscriptionToAuction = new ProtocolMessage();
 					takerSubscriptionToAuction.setPerformative(ProtocolMessage.takerSubscribed);
+					takerSubscriptionToAuction.set_Source(sender);
 					
 					// Récupération des dealers à avertir
 					HashMap<AID, Auction> tempProposed = this._marketAgent.get_ProposedAuctions();
