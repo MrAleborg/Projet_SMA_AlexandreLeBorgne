@@ -2,7 +2,9 @@ package fr.univpau.sma.projet.agent.behaviour.market;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import fr.univpau.sma.projet.agent.MarketAgent;
@@ -38,19 +40,19 @@ public class MarketCyclicBehaviour extends CyclicBehaviour {
 		if(message != null)
 		{
 			System.out.println("Agent Market a reçu un message");
-		try {
 			sender = message.getSender();
 			auction = new Auction();
 			msgStr = message.get_Message();
-			auction = (Auction) message.getContentObject();
-
-		} catch (UnreadableException e) {
-			e.printStackTrace();
-		}
 		
 		switch(message.getPerformative())
 		{
 			case ProtocolMessage.registerEvent:
+				try {
+					auction = (Auction) message.getContentObject();
+				} catch (UnreadableException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 				System.out.println("msgStr : " + msgStr);
 				if(!msgStr.equals(""))
 				{
@@ -114,8 +116,47 @@ public class MarketCyclicBehaviour extends CyclicBehaviour {
 				}
 				break;
 			case ProtocolMessage.takerSubscribed:
-				break;
-			case ProtocolMessage.auctionSpotted:
+				System.out.println("le market prend en compte l'inscription aux enchères du taker");
+				try {
+					List<Auction> auctions = (List<Auction>) message.getContentObject();
+					HashMap<AID, List<Auction> > tempMap = this._marketAgent.get_ParticipatingTakers();
+					
+					// Le taker n'existe pas encore dans les participants aux enchères
+					if(!tempMap.containsKey(sender))
+					{
+						tempMap.put(sender, auctions);
+						this._marketAgent.set_ParticipatingTakers(tempMap);
+					}
+					else // Le taker existe déjà
+					{
+						List<Auction> addedAuctions = tempMap.get(sender);
+						addedAuctions.addAll(auctions);
+						tempMap.put(sender, addedAuctions);
+						this._marketAgent.set_ParticipatingTakers(tempMap);
+					}
+					
+					// Préparation du message devant avertir les dealers de l'arrivée d'un nouveau preneur
+					ProtocolMessage takerSubscriptionToAuction = new ProtocolMessage();
+					takerSubscriptionToAuction.setPerformative(ProtocolMessage.takerSubscribed);
+					
+					// Récupération des dealers à avertir
+					HashMap<AID, Auction> tempProposed = this._marketAgent.get_ProposedAuctions();
+					List<AID> dealersToTell = new ArrayList<AID>();
+					if(!tempProposed.isEmpty())
+					{
+						for (Auction auction2 : auctions) {
+							for (AID tempdealer : this._marketAgent.get_Dealers()){
+								if(tempProposed.get(tempdealer).compareTo(auction2) == 0){
+									takerSubscriptionToAuction.addReceiver(tempdealer);
+								}
+							}
+						}
+						this._marketAgent.send(takerSubscriptionToAuction);
+					}
+					
+				} catch (UnreadableException e) {
+					e.printStackTrace();
+				}
 				break;
 			case ProtocolMessage.toAnnounce:
 				break;

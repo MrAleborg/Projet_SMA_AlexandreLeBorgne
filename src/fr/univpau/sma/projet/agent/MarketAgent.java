@@ -23,7 +23,7 @@ public class MarketAgent extends Agent {
 	private List<AID> _Takers = null;
 	private List<Auction> _Auctions = null;
 	private HashMap<AID, Auction> _ProposedAuctions = null;
-	private HashMap<AID, Auction> _ParticipatingTakers = null;
+	private HashMap<AID, List<Auction>> _ParticipatingTakers = null;
 	
 	@Override
 	public void setup() {
@@ -32,7 +32,7 @@ public class MarketAgent extends Agent {
 		this._Takers = new ArrayList<AID>();
 		this.set_Auctions(new ArrayList<Auction>());
 		this._ProposedAuctions = new HashMap<AID, Auction>();
-		this._ParticipatingTakers = new HashMap<AID, Auction>();
+		this._ParticipatingTakers = new HashMap<AID, List<Auction>>();
 		_AgentAID = getAID();
 		Object[] args = getArguments();
 		if(args != null && args.length >0)
@@ -114,11 +114,11 @@ public class MarketAgent extends Agent {
 		this._ProposedAuctions = _ProposedAuctions;
 	}
 
-	public HashMap<AID, Auction> get_ParticipatingTakers() {
+	public HashMap<AID, List<Auction>> get_ParticipatingTakers() {
 		return _ParticipatingTakers;
 	}
 
-	public void set_ParticipatingTakers(HashMap<AID, Auction> _ParticipatingTakers) {
+	public void set_ParticipatingTakers(HashMap<AID, List<Auction>> _ParticipatingTakers) {
 		this._ParticipatingTakers = _ParticipatingTakers;
 	}
 

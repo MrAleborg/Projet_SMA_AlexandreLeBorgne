@@ -1,5 +1,7 @@
 package fr.univpau.sma.projet.agent;
 
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -162,6 +164,10 @@ public class TakerAgent extends Agent {
 						}
 						lower = 0;
 					}
+					else
+					{
+						_ChosenAuctions = new ArrayList<Auction>();
+					}
 					int nbAuctionToSubscribe = (int) (Math.random() * (_Auctions.size()-lower)) + lower;
 					List<Auction> tempList = new ArrayList<Auction>();
 					int i=0;
@@ -174,7 +180,21 @@ public class TakerAgent extends Agent {
 						}
 						i++;
 					}
-					System.out.println("Taker a choisi les enchères auxquelles il veut participer");
+					_ChosenAuctions.addAll(tempList);
+					
+					// Envoi du message de souscription aux enchères choisies
+					ProtocolMessage subscription = new ProtocolMessage();
+					subscription.setPerformative(ProtocolMessage.takerSubscribed);
+					try {
+						subscription.setContentObject((Serializable) tempList);
+						subscription.addReceiver(_market);
+						send(subscription);
+					} catch (IOException e) {
+						System.out.println("Le message de souscription n'a pas pu être envoyé");
+						e.printStackTrace();
+					}
+					
+					System.out.println("Taker a choisi les enchères auxquelles il veut participer, il en a choisi : " + tempList.size());
 				}
 				else System.out.println("_Auctions is EMPTY!!!");
 				

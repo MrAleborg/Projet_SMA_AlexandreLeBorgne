@@ -20,6 +20,7 @@ public class DealerAgent extends Agent {
 	private ThreadedBehaviourFactory tbf;
 	private AID _market;
 	private Auction _PorposedAuction = null;
+	private boolean _FirstAnnounce = true;
 	
 	private static final String register = "registerAtMarket";
 	private static final String waitfortakers = "waitForTaker";
@@ -68,11 +69,6 @@ public class DealerAgent extends Agent {
 		agentD_behaviour.registerTransition(give, end, ProtocolMessage.toPay);
 		
 		tbf = new ThreadedBehaviourFactory();
-		
-		
-		
-		
-
 		addBehaviour(tbf.wrap(agentD_behaviour));
 		
 	}
@@ -93,12 +89,32 @@ public class DealerAgent extends Agent {
 		this._PorposedAuction = _PorposedAuction;
 	}
 
+	public boolean is_FirstAnnounce() {
+		return _FirstAnnounce;
+	}
+
+	public void set_FirstAnnounce(boolean _FirstAnnounce) {
+		this._FirstAnnounce = _FirstAnnounce;
+	}
+
 	private class WaitForTakers extends OneShotBehaviour {
 
+
+		ProtocolMessage start = null;
+		
 		@Override
 		public void action() {
-			System.out.println("Le dealer attend ses premiers clients...");
-			
+			System.out.println("Le dealer attend ses premiers clients avant de commencer l'enchère...");
+			do
+			{
+				start = (ProtocolMessage) blockingReceive();
+			}while(start == null || start.getPerformative() != ProtocolMessage.takerSubscribed);
+			System.out.println("Le dealer fait connaissance avec ses premiers clients, il va commencer l'enchère");
+		}
+		
+		@Override
+		public int onEnd() {
+			return start.getPerformative();
 		}
 		
 	}
@@ -107,7 +123,7 @@ public class DealerAgent extends Agent {
 
 		@Override
 		public void action() {
-			// TODO Auto-generated method stub
+			System.out.println("C'est parti pour une vente de folie!!! le dealer fait sa première annonce!!!");
 			
 		}
 		
