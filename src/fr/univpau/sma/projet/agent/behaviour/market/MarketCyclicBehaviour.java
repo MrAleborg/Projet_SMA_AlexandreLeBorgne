@@ -160,6 +160,17 @@ public class MarketCyclicBehaviour extends CyclicBehaviour {
 				}
 				break;
 			case ProtocolMessage.toAnnounce:
+				message.clearAllReceiver();
+				List<AID> receivers = message.get_Takers();
+				if(!receivers.isEmpty())
+				{
+					for (AID r : receivers)
+					{
+						System.out.println("market prepare l'annonce pour : " + r.getName());
+						message.addReceiver(r);
+					}
+					this._marketAgent.send(message);
+				}
 				break;
 			case ProtocolMessage.toBid:
 				break;

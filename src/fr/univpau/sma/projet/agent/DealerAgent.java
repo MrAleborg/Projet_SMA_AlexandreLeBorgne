@@ -1,5 +1,6 @@
 package fr.univpau.sma.projet.agent;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -164,7 +165,15 @@ public class DealerAgent extends Agent {
 				start = (ProtocolMessage) blockingReceive();
 			}while(start == null || start.getPerformative() != ProtocolMessage.takerSubscribed);
 			_RegisteredTakers.add(start.get_Source());
-			
+			ProtocolMessage firstAnnounce = new ProtocolMessage();
+			firstAnnounce.setPerformative(ProtocolMessage.toAnnounce);
+			firstAnnounce.get_Takers().add(start.get_Source());
+			try {
+				firstAnnounce.setContentObject(_PorposedAuction);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			send(firstAnnounce);
 		}
 		
 	}
@@ -174,6 +183,17 @@ public class DealerAgent extends Agent {
 		@Override
 		public void action() {
 			System.out.println("C'est parti pour une vente de folie!!! le dealer fait sa première annonce!!!");
+			ProtocolMessage messageAnnounce = new ProtocolMessage();
+			messageAnnounce.setPerformative(ProtocolMessage.toAnnounce);
+			messageAnnounce.get_Takers().addAll(_RegisteredTakers);
+			try {
+				messageAnnounce.setContentObject(get_PorposedAuction());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			messageAnnounce.addReceiver(get_market());
+			send(messageAnnounce);
+			System.out.println("Dealer a annoncé");
 			while(true){}
 		}
 		

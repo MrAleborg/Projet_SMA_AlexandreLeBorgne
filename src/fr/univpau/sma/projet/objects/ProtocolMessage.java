@@ -1,5 +1,8 @@
 package fr.univpau.sma.projet.objects;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 
@@ -20,7 +23,8 @@ public class ProtocolMessage extends ACLMessage {
 	public static final String dealer = "dealer";
 	
 	private String _Message = null;
-	private AID _Source;
+	private AID _Source = null;
+	private List<AID> _Takers = new ArrayList<AID>();
 	
 	public ProtocolMessage() {
 	}
@@ -43,6 +47,14 @@ public class ProtocolMessage extends ACLMessage {
 
 	public void set_Source(AID _Source) {
 		this._Source = _Source;
+	}
+
+	public List<AID> get_Takers() {
+		return _Takers;
+	}
+
+	public void set_Takers(List<AID> _Takers) {
+		this._Takers = _Takers;
 	}
 	
 }
