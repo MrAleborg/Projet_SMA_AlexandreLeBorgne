@@ -31,6 +31,7 @@ public class RegisterAtMarket extends OneShotBehaviour {
 		System.out.println("Le dealer paye sa licence pour vendre ses trucs");
 		// A enlever avec l'interface utilisateur
 		this._ProposedAuction = new Auction(10, 10, 1, 2, 1, "truc", this._DealerAgent.getLocalName(), 0);
+		_DealerAgent.set_PorposedAuction(this._ProposedAuction);
 		ProtocolMessage message = new ProtocolMessage(ProtocolMessage.dealer);
 		message.addReceiver(_market);
 		System.out.println(_market.getName());

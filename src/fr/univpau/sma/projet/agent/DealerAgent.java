@@ -168,6 +168,7 @@ public class DealerAgent extends Agent {
 			ProtocolMessage firstAnnounce = new ProtocolMessage();
 			firstAnnounce.setPerformative(ProtocolMessage.toAnnounce);
 			firstAnnounce.get_Takers().add(start.get_Source());
+			firstAnnounce.addReceiver(_market);
 			try {
 				firstAnnounce.setContentObject(_PorposedAuction);
 			} catch (IOException e) {
@@ -194,7 +195,11 @@ public class DealerAgent extends Agent {
 			messageAnnounce.addReceiver(get_market());
 			send(messageAnnounce);
 			System.out.println("Dealer a annoncé");
-			while(true){}
+		}
+		
+		@Override
+		public int onEnd() {
+			return ProtocolMessage.toAnnounce;
 		}
 		
 	}
@@ -203,8 +208,8 @@ public class DealerAgent extends Agent {
 
 		@Override
 		public void action() {
-			// TODO Auto-generated method stub
-			
+			System.out.println(getLocalName() + " attend des bids");
+			while(true){}
 		}
 		
 	}

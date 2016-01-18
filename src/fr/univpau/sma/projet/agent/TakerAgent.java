@@ -35,9 +35,9 @@ public class TakerAgent extends Agent {
 		System.out.println("Agent " + getLocalName() + " est chaud pour pécho des trucs");
 		System.out.println("Agent " + getLocalName() + " met ses bottes");
 		
-		this._Wallet = (int) (Math.random() * (MAXMONEY - MINMONEY)) + MINMONEY;
+		this.set_Wallet((int) (Math.random() * (MAXMONEY - MINMONEY)) + MINMONEY);
 		
-		System.out.println("Agent " + getLocalName() + " embarque " + this._Wallet + "€ avec lui pour faire ses courses");
+		System.out.println("Agent " + getLocalName() + " embarque " + this.get_Wallet() + "€ avec lui pour faire ses courses");
 		
 		this._ParallelAuctions = new ParallelBehaviour();
 				
@@ -57,7 +57,7 @@ public class TakerAgent extends Agent {
 		setTbf(new ThreadedBehaviourFactory());
 		
 		addBehaviour(getTbf().wrap(new RegisterAtMarket(this)));
-		addBehaviour(tbf.wrap(_ParallelAuctions));
+//		addBehaviour(tbf.wrap(_ParallelAuctions));
 		
 	}
 	
@@ -115,6 +115,14 @@ public class TakerAgent extends Agent {
 
 	public void set_ParallelAuctions(ParallelBehaviour _ParallelAuctions) {
 		this._ParallelAuctions = _ParallelAuctions;
+	}
+
+	public int get_Wallet() {
+		return _Wallet;
+	}
+
+	public void set_Wallet(int _Wallet) {
+		this._Wallet = _Wallet;
 	}
 
 	

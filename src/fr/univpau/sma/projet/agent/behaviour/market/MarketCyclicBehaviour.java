@@ -161,6 +161,13 @@ public class MarketCyclicBehaviour extends CyclicBehaviour {
 				break;
 			case ProtocolMessage.toAnnounce:
 				message.clearAllReceiver();
+				try {
+					if(message.getContentObject() == null)
+						System.out.println("ContentObject = null");
+				} catch (UnreadableException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				List<AID> receivers = message.get_Takers();
 				if(!receivers.isEmpty())
 				{
