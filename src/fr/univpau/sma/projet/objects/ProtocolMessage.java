@@ -18,6 +18,7 @@ public class ProtocolMessage extends ACLMessage {
 	public static final int toAttribute = ACLMessage.ACCEPT_PROPOSAL;
 	public static final int toGive = ACLMessage.AGREE;
 	public static final int toPay = ACLMessage.CONFIRM;
+	public static final int auctionFinished = 103;
 
 	public static final String taker = "taker";
 	public static final String dealer = "dealer";

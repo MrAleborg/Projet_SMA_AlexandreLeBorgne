@@ -1,6 +1,7 @@
 package fr.univpau.sma.projet.agent.behaviour.taker;
 
 import jade.core.behaviours.CyclicBehaviour;
+import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 
 import java.io.IOException;
@@ -35,8 +36,8 @@ public class WaitForAuction extends CyclicBehaviour {
 		ProtocolMessage m = null;
 		
 		// Reception de la liste des enchères
-		m = (ProtocolMessage) this.takerAgent.receive();
-		if(m!=null && m.getPerformative() == ProtocolMessage.auctionSpotted)
+		m = (ProtocolMessage) this.takerAgent.blockingReceive(MessageTemplate.MatchPerformative(ProtocolMessage.auctionSpotted));
+		if(m!=null)
 		{
 			System.out.println("Taker récupère les enchères");
 			try {
@@ -89,17 +90,16 @@ public class WaitForAuction extends CyclicBehaviour {
 				
 				System.out.println("Taker a choisi les enchères auxquelles il veut participer, il en a choisi : " + tempList.size());
 				
-				for(Auction auction : this.takerAgent.get_ChosenAuctions())
-				{
-					System.out.println("création des fsm du client");
-					this.takerAgent.addBehaviour(this.takerAgent.getTbf().wrap(new TakerFSMBehaviour(takerAgent, auction)));
-//					this.takerAgent.get_ParallelAuctions().addSubBehaviour(new TakerFSMBehaviour(takerAgent, auction));
-				}
+				if(!tempList.isEmpty())
+					for(Auction auction : tempList)
+					{
+						System.out.println("création des fsm du client");
+						this.takerAgent.addBehaviour(this.takerAgent.getTbf().wrap(new TakerFSMBehaviour(takerAgent, auction)));
+					}
 			}
 			else System.out.println("_Auctions is EMPTY!!!");
 			
 		}
-		else block();
 		
 	}
 	

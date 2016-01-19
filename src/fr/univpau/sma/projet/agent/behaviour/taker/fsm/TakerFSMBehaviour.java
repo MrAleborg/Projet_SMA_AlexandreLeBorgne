@@ -7,6 +7,7 @@ import fr.univpau.sma.projet.objects.Auction;
 import fr.univpau.sma.projet.objects.ProtocolMessage;
 import jade.core.behaviours.FSMBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
+import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 
 @SuppressWarnings("serial")
@@ -23,6 +24,8 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 	private static final String waitforgive = "waitForGive";
 	private static final String pay = "pay";
 	private static final String end = "end";
+	private static final String lose = "lose";
+	private static final int YOULOSE = 0;
 
 	public TakerFSMBehaviour(TakerAgent a, Auction _Auction) {
 		super(a);
@@ -31,19 +34,22 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 		
 		registerFirstState(new waitForAnnounce(), waitforannounce);
 		registerState(new Bid(), bid);
-		registerState(new WaitForAttribute(), waitforattribute);
+//		registerState(new WaitForAttribute(), waitforattribute);
 		registerState(new WaitForGive(), waitforgive);
 		registerState(new Pay(), pay);
 		registerLastState(new End(), end);
+		registerLastState(new Lose(), lose);
 		
 
 		registerTransition(waitforannounce, bid, ProtocolMessage.toAnnounce);
 		registerDefaultTransition(bid, waitforannounce);
 //		registerTransition(bid, waitforannounce, ProtocolMessage.toAnnounce);
-		registerTransition(waitforannounce, waitforattribute, ProtocolMessage.toBid);
-		registerTransition(waitforattribute, waitforgive, ProtocolMessage.toAttribute);
+//		registerTransition(waitforannounce, waitforattribute, ProtocolMessage.toBid);
+//		registerTransition(waitforattribute, waitforgive, ProtocolMessage.toAttribute);
+		registerTransition(waitforannounce, waitforgive, ProtocolMessage.toAttribute);
 		registerTransition(waitforgive, pay, ProtocolMessage.toGive);
 		registerTransition(pay, end, ProtocolMessage.toPay);
+		registerTransition(waitforannounce, lose, YOULOSE);
 		
 	}
 
@@ -55,20 +61,31 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 		this._Auction = _Auction;
 	}
 	
-	public class waitForAnnounce extends OneShotBehaviour {
+	private class waitForAnnounce extends OneShotBehaviour {
 		
 		ProtocolMessage announce;
+		boolean winAuction = false;
 		
 		@Override
 		public void action() {
 			announce = null;
 			System.out.println("Le Taker " + takerAgent.getLocalName() + " attend une annonce...");
+			
+			ProtocolMessage p1 = new ProtocolMessage();
+			ProtocolMessage p2 = new ProtocolMessage();
 			try {
-				while(announce == null || announce.getPerformative() != ProtocolMessage.toAnnounce || _Auction.compareTo((Auction) announce.getContentObject()) == 1)
-				{
-					announce = (ProtocolMessage) takerAgent.receive();
-				}
-			} catch (UnreadableException e1) {
+				p1.setContentObject(_Auction);
+				p1.setPerformative(ProtocolMessage.toAnnounce);
+				p2.setContentObject(_Auction);
+				p2.setPerformative(ProtocolMessage.toAttribute);
+				MessageTemplate t1 = MessageTemplate.MatchPerformative(ProtocolMessage.toAnnounce);
+				MessageTemplate t2 = MessageTemplate.MatchPerformative(ProtocolMessage.toAttribute);
+				t1.match(p1);
+				t2.match(p2);
+				
+				announce = (ProtocolMessage) takerAgent.blockingReceive(MessageTemplate.or(t1, t2));
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 			
@@ -82,11 +99,17 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 					e.printStackTrace();
 				}
 			}
+			else if(announce.getPerformative() == ProtocolMessage.toAttribute)
+			{
+				winAuction=true;
+			}
 			
 		}
 		
 		@Override
 		public int onEnd() {
+			if(announce.getPerformative()==ProtocolMessage.toAttribute && !winAuction)
+				return YOULOSE;
 			return announce.getPerformative();
 		}
 		
@@ -118,22 +141,30 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 		
 	}
 	
-	private class WaitForAttribute extends OneShotBehaviour {
+//	private class WaitForAttribute extends OneShotBehaviour {
+//
+//		@Override
+//		public void action() {
+//			// TODO Auto-generated method stub
+//			
+//		}
+//		
+//	}
+	
+	private class WaitForGive extends OneShotBehaviour {
 
+		private ProtocolMessage giveMessage = null;
+		
 		@Override
 		public void action() {
 			// TODO Auto-generated method stub
 			
 		}
 		
-	}
-	
-	private class WaitForGive extends OneShotBehaviour {
-
 		@Override
-		public void action() {
-			// TODO Auto-generated method stub
-			
+		public int onEnd() {
+		// TODO Auto-generated method stub
+		return super.onEnd();
 		}
 		
 	}
@@ -146,9 +177,31 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 			
 		}
 		
+		@Override
+		public int onEnd() {
+			// TODO Auto-generated method stub
+			return super.onEnd();
+		}
+		
 	}
 	
 	private class End extends OneShotBehaviour {
+
+		@Override
+		public void action() {
+			// TODO Auto-generated method stub
+			
+		}
+		
+		@Override
+		public int onEnd() {
+			// TODO Auto-generated method stub
+			return super.onEnd();
+		}
+		
+	}
+	
+	private class Lose extends OneShotBehaviour {
 
 		@Override
 		public void action() {

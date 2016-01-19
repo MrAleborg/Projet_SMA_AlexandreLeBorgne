@@ -10,11 +10,6 @@ import jade.core.behaviours.Behaviour;
 
 @SuppressWarnings("serial")
 public class SpreadAuctionsBehaviour extends Behaviour {
-
-//	public SpreadAuctionsBehaviour() {
-//		super();
-//		// TODO Auto-generated constructor stub
-//	}
 	
 	private boolean _terminate = false;
 

@@ -2,9 +2,7 @@ package fr.univpau.sma.projet.agent.behaviour.market;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 import fr.univpau.sma.projet.agent.MarketAgent;
@@ -118,6 +116,7 @@ public class MarketCyclicBehaviour extends CyclicBehaviour {
 			case ProtocolMessage.takerSubscribed:
 				System.out.println("le market prend en compte l'inscription aux enchères du taker");
 				try {
+					@SuppressWarnings("unchecked")
 					List<Auction> auctions = (List<Auction>) message.getContentObject();
 					HashMap<AID, List<Auction> > tempMap = this._marketAgent.get_ParticipatingTakers();
 					
@@ -142,7 +141,7 @@ public class MarketCyclicBehaviour extends CyclicBehaviour {
 					
 					// Récupération des dealers à avertir
 					HashMap<AID, Auction> tempProposed = this._marketAgent.get_ProposedAuctions();
-					List<AID> dealersToTell = new ArrayList<AID>();
+//					List<AID> dealersToTell = new ArrayList<AID>();
 					if(!tempProposed.isEmpty())
 					{
 						for (Auction auction2 : auctions) {
@@ -180,6 +179,24 @@ public class MarketCyclicBehaviour extends CyclicBehaviour {
 				}
 				break;
 			case ProtocolMessage.toBid:
+				try {
+					auction = (Auction) message.getContentObject();
+				} catch (UnreadableException e) {
+					e.printStackTrace();
+				}
+				ProtocolMessage bidMessage = new ProtocolMessage();
+				bidMessage.set_Source(sender);
+				bidMessage.setPerformative(ProtocolMessage.toBid);
+				AID receiver = new AID();
+				for(AID tempdealer : this._marketAgent.get_Dealers()){
+					if(this._marketAgent.get_ProposedAuctions().get(tempdealer).compareTo(auction) == 0 )
+					{
+						receiver = tempdealer;
+					}
+				}
+				System.out.println("Market transmet le bid à " + receiver.getLocalName());
+				bidMessage.addReceiver(receiver);
+				this._marketAgent.send(bidMessage);
 				break;
 			case ProtocolMessage.toAttribute:
 				break;

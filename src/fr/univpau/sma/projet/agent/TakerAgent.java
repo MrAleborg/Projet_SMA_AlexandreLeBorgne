@@ -7,7 +7,6 @@ import fr.univpau.sma.projet.objects.Auction;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.FSMBehaviour;
-import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.ParallelBehaviour;
 import jade.core.behaviours.ThreadedBehaviourFactory;
 import jade.domain.DFService;
@@ -57,7 +56,6 @@ public class TakerAgent extends Agent {
 		setTbf(new ThreadedBehaviourFactory());
 		
 		addBehaviour(getTbf().wrap(new RegisterAtMarket(this)));
-//		addBehaviour(tbf.wrap(_ParallelAuctions));
 		
 	}
 	
