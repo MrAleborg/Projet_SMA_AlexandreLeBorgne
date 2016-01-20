@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import fr.univpau.sma.projet.agent.MarketAgent;
+import fr.univpau.sma.projet.gui.market.MarketGUI;
 import fr.univpau.sma.projet.objects.Auction;
 import fr.univpau.sma.projet.objects.ProtocolMessage;
 import jade.core.AID;
@@ -17,6 +18,7 @@ import jade.lang.acl.UnreadableException;
 public class MarketCyclicBehaviour extends CyclicBehaviour {
 	
 	MarketAgent _marketAgent = null;
+	MarketGUI _marketGUI = null;
 
 	public MarketCyclicBehaviour() {
 	}
@@ -24,6 +26,8 @@ public class MarketCyclicBehaviour extends CyclicBehaviour {
 	public MarketCyclicBehaviour(MarketAgent a) {
 		super(a);
 		this._marketAgent = a;
+		this._marketGUI = new MarketGUI();
+		this._marketGUI.setVisible(true);
 	}
 
 	@Override
@@ -104,6 +108,7 @@ public class MarketCyclicBehaviour extends CyclicBehaviour {
 								ThreadedBehaviourFactory tbf = new ThreadedBehaviourFactory();
 								System.out.println("Dealer enregistré dans le market");
 								this._marketAgent.addBehaviour(tbf.wrap(new SpreadAuctionsBehaviour(this._marketAgent)));
+								this._marketGUI.addAuction(auction);
 							 }
 						 }
 						 catch(Exception e)
@@ -152,6 +157,10 @@ public class MarketCyclicBehaviour extends CyclicBehaviour {
 							}
 						}
 						this._marketAgent.send(takerSubscriptionToAuction);
+					}
+					for(Auction a : auctions)
+					{
+						this._marketGUI.addParticipating(sender, a);
 					}
 					
 				} catch (UnreadableException e) {
