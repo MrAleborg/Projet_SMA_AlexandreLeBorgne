@@ -21,6 +21,8 @@ public class TakerAgent extends Agent {
 	private ParallelBehaviour _ParallelAuctions = null;
 	List<Auction> _Auctions = null;
 	List<Auction> _ChosenAuctions = null;
+	private List<Auction> _WonAuctions = null;
+	private List<Auction> _LostAuctions = null;
 	private ThreadedBehaviourFactory tbf = null;
 	AID _market;
 	private int lower = 1;
@@ -121,6 +123,22 @@ public class TakerAgent extends Agent {
 
 	public void set_Wallet(int _Wallet) {
 		this._Wallet = _Wallet;
+	}
+
+	public List<Auction> get_WonAuctions() {
+		return _WonAuctions;
+	}
+
+	public void set_WonAuctions(List<Auction> _WonAuctions) {
+		this._WonAuctions = _WonAuctions;
+	}
+
+	public List<Auction> get_LostAuctions() {
+		return _LostAuctions;
+	}
+
+	public void set_LostAuctions(List<Auction> _LostAuctions) {
+		this._LostAuctions = _LostAuctions;
 	}
 
 	

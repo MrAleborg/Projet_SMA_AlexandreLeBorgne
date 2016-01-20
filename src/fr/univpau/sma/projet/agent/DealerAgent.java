@@ -27,7 +27,7 @@ public class DealerAgent extends Agent {
 	private Auction _ProposedAuction = null;
 	private boolean _FirstAnnounce = true;
 	private List<AID> _RegisteredTakers = null;
-	private long _BidTimer = 500;
+	private long _BidTimer = 10000;
 	private List<AID> _Bidders = null;
 	
 	private static final String register = "registerAtMarket";
@@ -314,7 +314,7 @@ public class DealerAgent extends Agent {
 		
 		@Override
 		public int onEnd() {
-			return ProtocolMessage.toGive;
+			return ProtocolMessage.toPay;
 		}
 		
 	}
@@ -325,6 +325,9 @@ public class DealerAgent extends Agent {
 		
 		@Override
 		public void action() {
+			
+			System.out.println(getLocalName() + " attend d'être payé");
+			
 			payment = (ProtocolMessage) blockingReceive(MessageTemplate.MatchPerformative(ProtocolMessage.toPay));
 			
 			if(payment != null)

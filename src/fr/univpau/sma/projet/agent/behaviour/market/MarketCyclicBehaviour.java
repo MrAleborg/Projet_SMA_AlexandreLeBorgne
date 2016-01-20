@@ -199,10 +199,54 @@ public class MarketCyclicBehaviour extends CyclicBehaviour {
 				this._marketAgent.send(bidMessage);
 				break;
 			case ProtocolMessage.toAttribute:
+				message.clearAllReceiver();
+				try {
+					if(message.getContentObject() == null)
+						System.out.println("ContentObject = null");
+				} catch (UnreadableException e) {
+					e.printStackTrace();
+				}
+				List<AID> receivers1 = message.get_Takers();
+				if(!receivers1.isEmpty())
+				{
+					for (AID r : receivers1)
+					{
+						System.out.println("market prepare la notification d'attribution de l'enchère de " + sender.getLocalName() );
+						message.addReceiver(r);
+					}
+					this._marketAgent.send(message);
+				}
 				break;
 			case ProtocolMessage.toGive:
+				message.clearAllReceiver();
+				try {
+					if(message.getContentObject() == null)
+						System.out.println("ContentObject = null");
+				} catch (UnreadableException e) {
+					e.printStackTrace();
+				}
+				message.addReceiver(message.get_Source());
+				this._marketAgent.send(message);
 				break;
 			case ProtocolMessage.toPay:
+				try {
+					auction = (Auction) message.getContentObject();
+				} catch (UnreadableException e) {
+					e.printStackTrace();
+				}
+				ProtocolMessage payMessage = new ProtocolMessage();
+				payMessage.set_Source(sender);
+				payMessage.setPerformative(ProtocolMessage.toPay);
+				AID receiver1 = new AID();
+				for(AID tempdealer : this._marketAgent.get_Dealers()){
+					if(this._marketAgent.get_ProposedAuctions().get(tempdealer).compareTo(auction) == 0 )
+					{
+						receiver1 = tempdealer;
+					}
+				}
+				payMessage.addReceiver(receiver1);
+				this._marketAgent.send(payMessage);
+				
 				break;
 			default:
 				System.out.println("Le Market n'a pas su traiter le message");

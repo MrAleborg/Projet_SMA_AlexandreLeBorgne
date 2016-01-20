@@ -1,6 +1,7 @@
 package fr.univpau.sma.projet.agent.behaviour.taker.fsm;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import fr.univpau.sma.projet.agent.TakerAgent;
 import fr.univpau.sma.projet.objects.Auction;
@@ -16,16 +17,16 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 	private Auction _Auction;
 	private TakerAgent takerAgent;
 	
-	private static final String register = "registerAtMarket";
-	private static final String waitforauction = "waitForAuction";
+//	private static final String register = "registerAtMarket";
+//	private static final String waitforauction = "waitForAuction";
 	private static final String waitforannounce = "waitForAnnounce";
 	private static final String bid = "bid";
-	private static final String waitforattribute = "waitForAttribute";
+//	private static final String waitforattribute = "waitForAttribute";
 	private static final String waitforgive = "waitForGive";
 	private static final String pay = "pay";
-	private static final String end = "end";
+//	private static final String end = "end";
 	private static final String lose = "lose";
-	private static final int YOULOSE = 0;
+	private static final int YOULOSE = 111;
 
 	public TakerFSMBehaviour(TakerAgent a, Auction _Auction) {
 		super(a);
@@ -36,8 +37,8 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 		registerState(new Bid(), bid);
 //		registerState(new WaitForAttribute(), waitforattribute);
 		registerState(new WaitForGive(), waitforgive);
-		registerState(new Pay(), pay);
-		registerLastState(new End(), end);
+		registerLastState(new Pay(), pay);
+//		registerLastState(new End(), end);
 		registerLastState(new Lose(), lose);
 		
 
@@ -48,7 +49,7 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 //		registerTransition(waitforattribute, waitforgive, ProtocolMessage.toAttribute);
 		registerTransition(waitforannounce, waitforgive, ProtocolMessage.toAttribute);
 		registerTransition(waitforgive, pay, ProtocolMessage.toGive);
-		registerTransition(pay, end, ProtocolMessage.toPay);
+//		registerTransition(pay, end, ProtocolMessage.toPay);
 		registerTransition(waitforannounce, lose, YOULOSE);
 		
 	}
@@ -101,7 +102,10 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 			}
 			else if(announce.getPerformative() == ProtocolMessage.toAttribute)
 			{
-				winAuction=true;
+				if(takerAgent.getAID().equals(announce.get_Source()))
+				{
+					winAuction=true;
+				}
 			}
 			
 		}
@@ -109,7 +113,10 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 		@Override
 		public int onEnd() {
 			if(announce.getPerformative()==ProtocolMessage.toAttribute && !winAuction)
+			{
 				return YOULOSE;
+			}
+			
 			return announce.getPerformative();
 		}
 		
@@ -141,30 +148,33 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 		
 	}
 	
-//	private class WaitForAttribute extends OneShotBehaviour {
-//
-//		@Override
-//		public void action() {
-//			// TODO Auto-generated method stub
-//			
-//		}
-//		
-//	}
-	
 	private class WaitForGive extends OneShotBehaviour {
 
 		private ProtocolMessage giveMessage = null;
 		
 		@Override
 		public void action() {
-			// TODO Auto-generated method stub
+			System.out.println(takerAgent.getLocalName() + " a gagné l'enchère de " + _Auction.get_dealerName() + ". Il est vraiment très content!");
 			
+			ProtocolMessage p = new ProtocolMessage();
+			MessageTemplate t = null;
+			try {
+				p.setContentObject(_Auction);
+				p.setPerformative(ProtocolMessage.toGive);
+				t = MessageTemplate.MatchPerformative(ProtocolMessage.toGive);
+				t.match(p);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			System.out.println(takerAgent.getLocalName() + " attend sa livraison");
+			giveMessage = (ProtocolMessage) takerAgent.blockingReceive(t);
+			System.out.println(takerAgent.getLocalName() + " a reçu les trucs qu'il vient d'acheter");
 		}
 		
 		@Override
 		public int onEnd() {
-		// TODO Auto-generated method stub
-		return super.onEnd();
+			
+			return giveMessage.getPerformative();
 		}
 		
 	}
@@ -173,39 +183,39 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 
 		@Override
 		public void action() {
-			// TODO Auto-generated method stub
-			
+			System.out.println(takerAgent.getLocalName() + " doit maintenant passer à la caisse... Hé ouais!");
+			ProtocolMessage payMessage = new ProtocolMessage();
+			payMessage.addReceiver(takerAgent.get_market());
+			payMessage.setPerformative(ProtocolMessage.toPay);
+			try {
+				payMessage.setContentObject(_Auction);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			takerAgent.send(payMessage);
+			if(takerAgent.get_WonAuctions() == null)
+				takerAgent.set_WonAuctions(new ArrayList<Auction>());
+			takerAgent.get_WonAuctions().add(_Auction);
+			takerAgent.set_Wallet(takerAgent.get_Wallet()-_Auction.get_price());
 		}
 		
-		@Override
-		public int onEnd() {
-			// TODO Auto-generated method stub
-			return super.onEnd();
-		}
+//		@Override
+//		public int onEnd() {
+//			return ProtocolMessage.toPay;
+//		}
 		
 	}
 	
-	private class End extends OneShotBehaviour {
-
-		@Override
-		public void action() {
-			// TODO Auto-generated method stub
-			
-		}
-		
-		@Override
-		public int onEnd() {
-			// TODO Auto-generated method stub
-			return super.onEnd();
-		}
-		
-	}
 	
 	private class Lose extends OneShotBehaviour {
 
 		@Override
 		public void action() {
-			// TODO Auto-generated method stub
+			System.out.println(takerAgent.getLocalName() + " a perdu l'enchère de " + _Auction.get_dealerName() + ". Autant dire qu'il est sacrément déçu... :/");
+			if(takerAgent.get_LostAuctions() == null)
+				takerAgent.set_LostAuctions(new ArrayList<Auction>());
+			takerAgent.get_LostAuctions().add(_Auction);
 			
 		}
 		
