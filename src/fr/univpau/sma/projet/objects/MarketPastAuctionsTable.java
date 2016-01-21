@@ -1,15 +1,10 @@
-package fr.univpau.sma.projet.gui.market;
-
-import jade.core.AID;
+package fr.univpau.sma.projet.objects;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 
 import javax.swing.table.AbstractTableModel;
-
-import fr.univpau.sma.projet.objects.Auction;
 
 @SuppressWarnings("serial")
 public class MarketPastAuctionsTable extends AbstractTableModel {

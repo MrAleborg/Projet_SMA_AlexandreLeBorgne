@@ -27,7 +27,7 @@ public class DealerAgent extends Agent {
 	private Auction _ProposedAuction = null;
 	private boolean _FirstAnnounce = true;
 	private List<AID> _RegisteredTakers = null;
-	private long _BidTimer = 10000;
+	private long _BidTimer = 500;
 	private List<AID> _Bidders = null;
 	
 	private static final String register = "registerAtMarket";

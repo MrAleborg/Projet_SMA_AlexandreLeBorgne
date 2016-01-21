@@ -26,7 +26,7 @@ public class MarketCyclicBehaviour extends CyclicBehaviour {
 	public MarketCyclicBehaviour(MarketAgent a) {
 		super(a);
 		this._marketAgent = a;
-		this._marketGUI = new MarketGUI();
+		this._marketGUI = new MarketGUI(this._marketAgent);
 		this._marketGUI.setVisible(true);
 	}
 
@@ -168,6 +168,11 @@ public class MarketCyclicBehaviour extends CyclicBehaviour {
 				}
 				break;
 			case ProtocolMessage.toAnnounce:
+			try {
+				auction = (Auction) message.getContentObject();
+			} catch (UnreadableException e1) {
+				e1.printStackTrace();
+			}
 				message.clearAllReceiver();
 				try {
 					if(message.getContentObject() == null)
@@ -185,6 +190,7 @@ public class MarketCyclicBehaviour extends CyclicBehaviour {
 						message.addReceiver(r);
 					}
 					this._marketAgent.send(message);
+					this._marketGUI.updateAuction(auction);
 				}
 				break;
 			case ProtocolMessage.toBid:
@@ -255,7 +261,8 @@ public class MarketCyclicBehaviour extends CyclicBehaviour {
 				}
 				payMessage.addReceiver(receiver1);
 				this._marketAgent.send(payMessage);
-				
+				this._marketGUI.addPastAuction(auction, sender.getLocalName());
+				this._marketAgent.get_Auctions().remove(auction);
 				break;
 			default:
 				System.out.println("Le Market n'a pas su traiter le message");

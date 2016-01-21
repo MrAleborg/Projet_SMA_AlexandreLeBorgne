@@ -216,7 +216,6 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 			if(takerAgent.get_LostAuctions() == null)
 				takerAgent.set_LostAuctions(new ArrayList<Auction>());
 			takerAgent.get_LostAuctions().add(_Auction);
-			
 		}
 		
 	}

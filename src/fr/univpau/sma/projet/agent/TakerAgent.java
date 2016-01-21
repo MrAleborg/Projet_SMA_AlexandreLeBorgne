@@ -2,7 +2,10 @@ package fr.univpau.sma.projet.agent;
 
 import java.util.List;
 
+import javax.swing.JFrame;
+
 import fr.univpau.sma.projet.agent.behaviour.taker.RegisterAtMarket;
+import fr.univpau.sma.projet.gui.taker.TakerGUI;
 import fr.univpau.sma.projet.objects.Auction;
 import jade.core.AID;
 import jade.core.Agent;
@@ -33,6 +36,11 @@ public class TakerAgent extends Agent {
 	private static final int MINMONEY = 500;
 	
 	public void setup() {
+		
+		TakerGUI frame = new TakerGUI();
+    	frame.setVisible(true);
+    	frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		
 		System.out.println("Agent " + getLocalName() + " est chaud pour pécho des trucs");
 		System.out.println("Agent " + getLocalName() + " met ses bottes");
 		

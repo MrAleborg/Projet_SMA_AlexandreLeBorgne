@@ -1,4 +1,4 @@
-package fr.univpau.sma.projet.gui.market;
+package fr.univpau.sma.projet.objects;
 
 import jade.core.AID;
 
@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Set;
 
 import javax.swing.table.AbstractTableModel;
-
-import fr.univpau.sma.projet.objects.Auction;
 
 @SuppressWarnings("serial")
 public class MarketCurrentAuctionsTable extends AbstractTableModel {
@@ -82,23 +80,22 @@ public class MarketCurrentAuctionsTable extends AbstractTableModel {
     }
  
     public void removeAuction(int rowIndex) {
-//        _Auctions.remove(rowIndex);
- 
-        fireTableRowsDeleted(rowIndex, rowIndex);
+        _Auctions.remove(rowIndex);
+
+    	fireTableDataChanged();
+    	
     }
     
     public void addParticipating(AID tak, Auction auc)
     {
-//    	if(_mappingAuctions.containsKey(tak))
-//    		_mappingAuctions.get(tak).add(auc);
-//    	else
-//		{
-//    		List<Auction> l = new ArrayList<Auction>();
-//    		l.add(auc);
-//    		_mappingAuctions.put(tak, l);
-//		}
-//    	System.out.println("PARTICIPATING : " + tak.getLocalName());
-//    	fireTableRowsUpdated(0, _Auctions.size()-1);
+    	if(_mappingAuctions.containsKey(tak))
+    		_mappingAuctions.get(tak).add(auc);
+    	else
+		{
+    		List<Auction> l = new ArrayList<Auction>();
+    		l.add(auc);
+    		_mappingAuctions.put(tak, l);
+		}
     	fireTableDataChanged();
     }
 
@@ -108,6 +105,11 @@ public class MarketCurrentAuctionsTable extends AbstractTableModel {
 //    	{
 //    		_mappingAuctions.remove(tak);
 //    	}
+    	fireTableDataChanged();
+    }
+    
+    public void updateAuction()
+    {
     	fireTableDataChanged();
     }
 
