@@ -3,7 +3,9 @@ package fr.univpau.sma.projet.agent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import fr.univpau.sma.projet.agent.behaviour.dealer.RegisterAtMarket;
+import fr.univpau.sma.projet.gui.dealer.DealerGUI;
 import fr.univpau.sma.projet.objects.Auction;
 import fr.univpau.sma.projet.objects.ProtocolMessage;
 import jade.core.AID;
@@ -43,6 +45,14 @@ public class DealerAgent extends Agent {
 		System.out.println("Agent Dealer prépare sa dope");
 		
 		_RegisteredTakers = new ArrayList<AID>();
+		if(this.getArguments()!=null)
+		{
+			_ProposedAuction = (Auction) this.getArguments()[0];
+			_ProposedAuction.set_dealerName(this.getLocalName());
+			this._BidTimer=_ProposedAuction.getTimer();
+		}
+		
+		DealerGUI frame = new DealerGUI(_ProposedAuction);
 		
 		DFAgentDescription template = new DFAgentDescription();
 		ServiceDescription sd = new ServiceDescription();
@@ -64,7 +74,7 @@ public class DealerAgent extends Agent {
 		agentD_behaviour.registerFirstState(new RegisterAtMarket(this), register);
 		agentD_behaviour.registerState(new WaitForTakers(), waitfortakers);
 		agentD_behaviour.registerState(new Announce(), announce);
-		agentD_behaviour.registerState(new WaitForBids(_BidTimer), waitforbids);
+		agentD_behaviour.registerState(new WaitForBids(get_BidTimer()), waitforbids);
 		agentD_behaviour.registerState(new Attribute(), attribute);
 		agentD_behaviour.registerState(new Give(), give);
 		agentD_behaviour.registerLastState(new End(), end);
@@ -114,6 +124,14 @@ public class DealerAgent extends Agent {
 
 	public void set_FirstAnnounce(boolean _FirstAnnounce) {
 		this._FirstAnnounce = _FirstAnnounce;
+	}
+
+	public long get_BidTimer() {
+		return _BidTimer;
+	}
+
+	public void set_BidTimer(long _BidTimer) {
+		this._BidTimer = _BidTimer;
 	}
 
 	private class WaitForTakers extends OneShotBehaviour {

@@ -13,12 +13,13 @@ public class Auction implements Serializable, Comparable<Auction> {
 	private String _name = "";
 	private String _dealerName = "";
 	private int _bids = 0;
+	private long timer = 0;
 	
 	public Auction(){}
 	
 	public Auction(int _price, int _initPrice, int _minPrice,
 			int _increaseStep, int _decreaseStep, String _name,
-			String _dealerName, int _bids) {
+			String _dealerName, int _bids, long timer) {
 		this._price = _price;
 		this._initPrice = _initPrice;
 		this._minPrice = _minPrice;
@@ -27,6 +28,19 @@ public class Auction implements Serializable, Comparable<Auction> {
 		this._name = _name;
 		this._dealerName = _dealerName;
 		this._bids = _bids;
+		this.setTimer(timer);
+	}
+	
+	public Auction(int _initPrice, int _minPrice,
+			int _increaseStep, int _decreaseStep, String _name,
+			long timer) {
+		this._initPrice = _initPrice;
+		this._minPrice = _minPrice;
+		this._increaseStep = _increaseStep;
+		this._decreaseStep = _decreaseStep;
+		this._name = _name;
+		this._bids = 0;
+		this.setTimer(timer);
 	}
 
 	public int get_price() {
@@ -113,6 +127,14 @@ public class Auction implements Serializable, Comparable<Auction> {
 	
 	public void bid(){
 		this._bids++;
+	}
+
+	public long getTimer() {
+		return timer;
+	}
+
+	public void setTimer(long timer) {
+		this.timer = timer;
 	}
 	
 }

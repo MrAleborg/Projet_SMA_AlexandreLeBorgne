@@ -30,6 +30,7 @@ public class TakerAgent extends Agent {
 	AID _market;
 	private int lower = 1;
 	private int _Wallet;
+	private boolean _autoMode;
 	
 	
 	private static final int MAXMONEY = 1000;
@@ -37,14 +38,21 @@ public class TakerAgent extends Agent {
 	
 	public void setup() {
 		
-		TakerGUI frame = new TakerGUI();
+		TakerGUI frame = new TakerGUI(this, this.is_autoMode());
     	frame.setVisible(true);
     	frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    	Object[] args = this.getArguments();
 		
 		System.out.println("Agent " + getLocalName() + " est chaud pour pécho des trucs");
 		System.out.println("Agent " + getLocalName() + " met ses bottes");
 		
-		this.set_Wallet((int) (Math.random() * (MAXMONEY - MINMONEY)) + MINMONEY);
+		if(args != null)
+		{
+			this.set_Wallet(Integer.parseInt((String) args[0]));
+			this.set_autoMode((Boolean) args[1]);
+		}
+		else
+			this.set_Wallet((int) (Math.random() * (MAXMONEY - MINMONEY)) + MINMONEY);
 		
 		System.out.println("Agent " + getLocalName() + " embarque " + this.get_Wallet() + "€ avec lui pour faire ses courses");
 		
@@ -65,7 +73,7 @@ public class TakerAgent extends Agent {
 
 		setTbf(new ThreadedBehaviourFactory());
 		
-		addBehaviour(getTbf().wrap(new RegisterAtMarket(this)));
+		addBehaviour(getTbf().wrap(new RegisterAtMarket(this, frame)));
 		
 	}
 	
@@ -147,6 +155,14 @@ public class TakerAgent extends Agent {
 
 	public void set_LostAuctions(List<Auction> _LostAuctions) {
 		this._LostAuctions = _LostAuctions;
+	}
+
+	public boolean is_autoMode() {
+		return _autoMode;
+	}
+
+	public void set_autoMode(boolean _autoMode) {
+		this._autoMode = _autoMode;
 	}
 
 	

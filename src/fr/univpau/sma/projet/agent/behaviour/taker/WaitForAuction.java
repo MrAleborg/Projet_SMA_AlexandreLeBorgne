@@ -11,6 +11,7 @@ import java.util.List;
 
 import fr.univpau.sma.projet.agent.TakerAgent;
 import fr.univpau.sma.projet.agent.behaviour.taker.fsm.TakerFSMBehaviour;
+import fr.univpau.sma.projet.gui.taker.TakerGUI;
 import fr.univpau.sma.projet.objects.Auction;
 import fr.univpau.sma.projet.objects.ProtocolMessage;
 
@@ -21,12 +22,13 @@ public class WaitForAuction extends CyclicBehaviour {
 	 * 
 	 */
 	private TakerAgent takerAgent;
-
+	private TakerGUI takerGUI;
 	/**
 	 * @param takerAgent
 	 */
-	WaitForAuction(TakerAgent takerAgent) {
+	WaitForAuction(TakerAgent takerAgent, TakerGUI takerGUI) {
 		this.takerAgent = takerAgent;
+		this.takerGUI = takerGUI;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -106,7 +108,7 @@ public class WaitForAuction extends CyclicBehaviour {
 
 						for(Auction auction : tempList)
 						{
-							
+							this.takerGUI.addAuction(auction);
 							System.out.println("création des fsm du client : " + auction.get_dealerName());
 							this.takerAgent.addBehaviour(this.takerAgent.getTbf().wrap(new TakerFSMBehaviour(takerAgent, auction)));
 						}

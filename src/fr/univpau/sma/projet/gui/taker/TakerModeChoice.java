@@ -126,7 +126,8 @@ public class TakerModeChoice extends javax.swing.JFrame {
     	{
     		ContainerController cc = _marketAgent.getContainerController();
     		try {
-				AgentController ac = cc.createNewAgent(jTextField1.getText(), TakerAgent.class.getName(), null);
+    			Object[] s = {jTextField2.getText(), this._autoMode};
+				AgentController ac = cc.createNewAgent(jTextField1.getText(), TakerAgent.class.getName(), s);
 				ac.start();
 			} catch (StaleProxyException e) {
 				// TODO Auto-generated catch block
