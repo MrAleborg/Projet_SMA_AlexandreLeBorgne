@@ -45,7 +45,7 @@ public class DealerAgent extends Agent {
 		System.out.println("Agent Dealer prépare sa dope");
 		
 		_RegisteredTakers = new ArrayList<AID>();
-		if(this.getArguments()!=null)
+		if(this.getArguments().length > 0)
 		{
 			_ProposedAuction = (Auction) this.getArguments()[0];
 			_ProposedAuction.set_dealerName(this.getLocalName());
