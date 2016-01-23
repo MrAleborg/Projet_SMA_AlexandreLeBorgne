@@ -262,7 +262,10 @@ public class MarketCyclicBehaviour extends CyclicBehaviour {
 				payMessage.addReceiver(receiver1);
 				this._marketAgent.send(payMessage);
 				this._marketGUI.addPastAuction(auction, sender.getLocalName());
-				this._marketAgent.get_Auctions().remove(auction);
+				List<Auction> la = this._marketAgent.get_Auctions();
+				for(int i = 0 ; i < la.size() ; i++)
+					if(la.get(i).compareTo(auction)==0)
+						la.remove(i);
 				break;
 			default:
 				System.out.println("Le Market n'a pas su traiter le message");

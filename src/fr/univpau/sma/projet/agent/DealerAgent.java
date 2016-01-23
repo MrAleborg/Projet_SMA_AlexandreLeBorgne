@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JFrame;
+
 import fr.univpau.sma.projet.agent.behaviour.dealer.RegisterAtMarket;
 import fr.univpau.sma.projet.gui.dealer.DealerGUI;
 import fr.univpau.sma.projet.objects.Auction;
@@ -29,8 +31,9 @@ public class DealerAgent extends Agent {
 	private Auction _ProposedAuction = null;
 	private boolean _FirstAnnounce = true;
 	private List<AID> _RegisteredTakers = null;
-	private long _BidTimer = 500;
+	private long _BidTimer = 5000;
 	private List<AID> _Bidders = null;
+	DealerGUI frame;
 	
 	private static final String register = "registerAtMarket";
 	private static final String waitfortakers = "waitForTaker";
@@ -44,6 +47,7 @@ public class DealerAgent extends Agent {
 	public void setup(){
 		System.out.println("Agent Dealer prépare sa dope");
 		
+		
 		_RegisteredTakers = new ArrayList<AID>();
 		if(this.getArguments().length > 0)
 		{
@@ -52,7 +56,9 @@ public class DealerAgent extends Agent {
 			this._BidTimer=_ProposedAuction.getTimer();
 		}
 		
-		DealerGUI frame = new DealerGUI(_ProposedAuction);
+		frame = new DealerGUI(_ProposedAuction, this);
+		frame.setVisible(true);
+		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
 		DFAgentDescription template = new DFAgentDescription();
 		ServiceDescription sd = new ServiceDescription();
@@ -204,6 +210,8 @@ public class DealerAgent extends Agent {
 		public void action() {
 			this.reset();
 			_ProposedAuction.initBids();
+			frame.updatePrice(_ProposedAuction.get_price());
+			frame.updateBids(_ProposedAuction.get_bids());
 			_Bidders = null;
 			ProtocolMessage messageAnnounce = new ProtocolMessage();
 			messageAnnounce.setPerformative(ProtocolMessage.toAnnounce);
@@ -233,6 +241,7 @@ public class DealerAgent extends Agent {
 		ProtocolMessage bidMessage;
 		long timer;
 		boolean bidReceived;
+		boolean timerStarted = false;
 
 		public WaitForBids(long timer) {
 			this.timer = timer;
@@ -241,6 +250,11 @@ public class DealerAgent extends Agent {
 		
 		@Override
 		public void action() {
+			if(!timerStarted)
+			{
+				frame.startTimer();
+				timerStarted = true;
+			}
 			bidMessage = null;
 			bidReceived = false;
 			System.out.println(getLocalName() + " attend des bids");
@@ -263,10 +277,17 @@ public class DealerAgent extends Agent {
 		@Override
 		public int onEnd() {
 			if(bidReceived)
+			{	
+				frame.updateBids(_ProposedAuction.get_bids());
+				timerStarted = false;
+				frame.stopTimer();
 				return ProtocolMessage.toBid;
+			}
 			
 			if(_ProposedAuction.get_bids()>=2)
 			{
+				timerStarted = false;
+				frame.stopTimer();
 				_ProposedAuction.increasePrice();
 				return ProtocolMessage.toAnnounce;
 			}
@@ -274,6 +295,8 @@ public class DealerAgent extends Agent {
 			{
 				return ProtocolMessage.toAttribute;
 			}
+			timerStarted = false;
+			frame.stopTimer();
 			_ProposedAuction.decreasePrice();
 			return ProtocolMessage.toAnnounce;
 		}

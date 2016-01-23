@@ -2,10 +2,15 @@ package fr.univpau.sma.projet.agent.behaviour.taker.fsm;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Set;
+import java.util.concurrent.CyclicBarrier;
 
 import fr.univpau.sma.projet.agent.TakerAgent;
 import fr.univpau.sma.projet.objects.Auction;
 import fr.univpau.sma.projet.objects.ProtocolMessage;
+import jade.core.NotFoundException;
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.FSMBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.MessageTemplate;
@@ -13,18 +18,19 @@ import jade.lang.acl.UnreadableException;
 
 @SuppressWarnings("serial")
 public class TakerFSMBehaviour extends FSMBehaviour {
-	
+
 	private Auction _Auction;
 	private TakerAgent takerAgent;
-	
-//	private static final String register = "registerAtMarket";
-//	private static final String waitforauction = "waitForAuction";
+	private waitForUserBid _wfub = null;
+
+	//	private static final String register = "registerAtMarket";
+	//	private static final String waitforauction = "waitForAuction";
 	private static final String waitforannounce = "waitForAnnounce";
 	private static final String bid = "bid";
-//	private static final String waitforattribute = "waitForAttribute";
+	//	private static final String waitforattribute = "waitForAttribute";
 	private static final String waitforgive = "waitForGive";
 	private static final String pay = "pay";
-//	private static final String end = "end";
+	//	private static final String end = "end";
 	private static final String lose = "lose";
 	private static final int YOULOSE = 111;
 
@@ -32,26 +38,26 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 		super(a);
 		this.takerAgent = a;
 		this.set_Auction(_Auction);
-		
+
 		registerFirstState(new waitForAnnounce(), waitforannounce);
 		registerState(new Bid(), bid);
-//		registerState(new WaitForAttribute(), waitforattribute);
+		//		registerState(new WaitForAttribute(), waitforattribute);
 		registerState(new WaitForGive(), waitforgive);
 		registerLastState(new Pay(), pay);
-//		registerLastState(new End(), end);
+		//		registerLastState(new End(), end);
 		registerLastState(new Lose(), lose);
-		
+
 
 		registerTransition(waitforannounce, bid, ProtocolMessage.toAnnounce);
 		registerDefaultTransition(bid, waitforannounce);
-//		registerTransition(bid, waitforannounce, ProtocolMessage.toAnnounce);
-//		registerTransition(waitforannounce, waitforattribute, ProtocolMessage.toBid);
-//		registerTransition(waitforattribute, waitforgive, ProtocolMessage.toAttribute);
+		//		registerTransition(bid, waitforannounce, ProtocolMessage.toAnnounce);
+		//		registerTransition(waitforannounce, waitforattribute, ProtocolMessage.toBid);
+		//		registerTransition(waitforattribute, waitforgive, ProtocolMessage.toAttribute);
 		registerTransition(waitforannounce, waitforgive, ProtocolMessage.toAttribute);
 		registerTransition(waitforgive, pay, ProtocolMessage.toGive);
-//		registerTransition(pay, end, ProtocolMessage.toPay);
+		//		registerTransition(pay, end, ProtocolMessage.toPay);
 		registerTransition(waitforannounce, lose, YOULOSE);
-		
+
 	}
 
 	public Auction get_Auction() {
@@ -61,17 +67,17 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 	public void set_Auction(Auction _Auction) {
 		this._Auction = _Auction;
 	}
-	
+
 	private class waitForAnnounce extends OneShotBehaviour {
-		
+
 		ProtocolMessage announce;
 		boolean winAuction = false;
-		
+
 		@Override
 		public void action() {
 			announce = null;
 			System.out.println("Le Taker " + takerAgent.getLocalName() + " attend une annonce...");
-			
+
 			ProtocolMessage p1 = new ProtocolMessage();
 			ProtocolMessage p2 = new ProtocolMessage();
 			try {
@@ -83,18 +89,21 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 				MessageTemplate t2 = MessageTemplate.MatchPerformative(ProtocolMessage.toAttribute);
 				t1.match(p1);
 				t2.match(p2);
-				
+
 				announce = (ProtocolMessage) takerAgent.blockingReceive(MessageTemplate.or(t1, t2));
+				if(_wfub != null)
+					_wfub=null;
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-			
+
 			if(announce.getPerformative() == ProtocolMessage.toAnnounce)
 			{
 				try {
 					_Auction = (Auction) announce.getContentObject();
 					System.out.println(takerAgent.getLocalName() + " reçoit l'annonce : " + _Auction.get_dealerName() + " --> " + _Auction.get_name() + " : " + _Auction.get_price());
+					takerAgent.getFrame().updateAuction(_Auction);
 				} catch (UnreadableException e) {
 					System.out.println(takerAgent.getLocalName() + " n'a pas pu récupérer l'annonce");
 					e.printStackTrace();
@@ -107,29 +116,29 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 					winAuction=true;
 				}
 			}
-			
+
 		}
-		
+
 		@Override
 		public int onEnd() {
 			if(announce.getPerformative()==ProtocolMessage.toAttribute && !winAuction)
 			{
 				return YOULOSE;
 			}
-			
+
 			return announce.getPerformative();
 		}
-		
+
 	}
-	
+
 	private class Bid extends OneShotBehaviour {
-		
+
 		ProtocolMessage takerBids = null;
 
 		@Override
 		public void action() {
 			System.out.println("Taker réfléchit pour savoir si il va lever la main");
-			if(_Auction.get_price()<=takerAgent.get_Wallet())
+			if(_Auction.get_price()<=takerAgent.get_Wallet() && takerAgent.is_autoMode())
 			{
 				System.out.println(takerAgent.getLocalName() + " se décide à lever le bras");
 				takerBids = new ProtocolMessage();
@@ -143,19 +152,63 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 					e.printStackTrace();
 				}
 			}
+			else if(_Auction.get_price()<=takerAgent.get_Wallet() && !takerAgent.is_autoMode())
+			{
+				System.out.println("avant WFUB");
+				_wfub = new waitForUserBid();
+				takerAgent.addBehaviour(takerAgent.getTbf().wrap(_wfub));
+			}
 			else System.out.println(takerAgent.getLocalName() + " ne veut pas bider, l'enchère est trop élevée, il va attendre que ça redescende.");
 		}
-		
+
 	}
 	
-	private class WaitForGive extends OneShotBehaviour {
+	private class waitForUserBid extends Behaviour {
 
-		private ProtocolMessage giveMessage = null;
+		ProtocolMessage takerBids = null;
+		boolean done = false;
 		
 		@Override
 		public void action() {
+			System.out.println("dans WFUB");
+			Set<Auction> la = takerAgent.getFrame().getModele().get_mappingAuctionBid().keySet();
+			for(Auction a : la)
+				if(_Auction.compareTo(a)==0)
+					if(takerAgent.getFrame().getModele().get_mappingAuctionBid().get(a))
+					{
+						System.out.println(takerAgent.getLocalName() + " se décide à lever le bras");
+						takerBids = new ProtocolMessage();
+						takerBids.setPerformative(ProtocolMessage.toBid);
+						takerBids.addReceiver(takerAgent.get_market());
+						try {
+							takerBids.setContentObject(_Auction);
+							takerAgent.send(takerBids);
+							done=true;
+						} catch (IOException e) {
+							System.out.println(takerAgent.getLocalName() + " n'a pas pu bider");
+							e.printStackTrace();
+						}
+					}
+		}
+
+		@Override
+		public boolean done() {
+			return done;
+		}
+		
+		
+	}
+
+
+
+	private class WaitForGive extends OneShotBehaviour {
+
+		private ProtocolMessage giveMessage = null;
+
+		@Override
+		public void action() {
 			System.out.println(takerAgent.getLocalName() + " a gagné l'enchère de " + _Auction.get_dealerName() + ". Il est vraiment très content!");
-			
+
 			ProtocolMessage p = new ProtocolMessage();
 			MessageTemplate t = null;
 			try {
@@ -170,15 +223,15 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 			giveMessage = (ProtocolMessage) takerAgent.blockingReceive(t);
 			System.out.println(takerAgent.getLocalName() + " a reçu les trucs qu'il vient d'acheter");
 		}
-		
+
 		@Override
 		public int onEnd() {
-			
+
 			return giveMessage.getPerformative();
 		}
-		
+
 	}
-	
+
 	private class Pay extends OneShotBehaviour {
 
 		@Override
@@ -198,16 +251,17 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 				takerAgent.set_WonAuctions(new ArrayList<Auction>());
 			takerAgent.get_WonAuctions().add(_Auction);
 			takerAgent.set_Wallet(takerAgent.get_Wallet()-_Auction.get_price());
+			takerAgent.getFrame().addPastAuction(_Auction, true);
 		}
-		
-//		@Override
-//		public int onEnd() {
-//			return ProtocolMessage.toPay;
-//		}
-		
+
+		//		@Override
+		//		public int onEnd() {
+		//			return ProtocolMessage.toPay;
+		//		}
+
 	}
-	
-	
+
+
 	private class Lose extends OneShotBehaviour {
 
 		@Override
@@ -216,8 +270,9 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 			if(takerAgent.get_LostAuctions() == null)
 				takerAgent.set_LostAuctions(new ArrayList<Auction>());
 			takerAgent.get_LostAuctions().add(_Auction);
+			takerAgent.getFrame().addPastAuction(_Auction, false);
 		}
-		
+
 	}
- 	
+
 }

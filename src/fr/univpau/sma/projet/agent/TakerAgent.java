@@ -9,6 +9,7 @@ import fr.univpau.sma.projet.gui.taker.TakerGUI;
 import fr.univpau.sma.projet.objects.Auction;
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.MessageQueue;
 import jade.core.behaviours.FSMBehaviour;
 import jade.core.behaviours.ParallelBehaviour;
 import jade.core.behaviours.ThreadedBehaviourFactory;
@@ -16,6 +17,8 @@ import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 
 @SuppressWarnings("serial")
 public class TakerAgent extends Agent {
@@ -31,6 +34,7 @@ public class TakerAgent extends Agent {
 	private int lower = 1;
 	private int _Wallet;
 	private boolean _autoMode;
+	private TakerGUI frame;
 	
 	
 	private static final int MAXMONEY = 1000;
@@ -38,9 +42,6 @@ public class TakerAgent extends Agent {
 	
 	public void setup() {
 		
-		TakerGUI frame = new TakerGUI(this, this.is_autoMode());
-    	frame.setVisible(true);
-    	frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     	Object[] args = this.getArguments();
 		
 		System.out.println("Agent " + getLocalName() + " est chaud pour pécho des trucs");
@@ -50,6 +51,9 @@ public class TakerAgent extends Agent {
 		{
 			this.set_Wallet(Integer.parseInt((String) args[0]));
 			this.set_autoMode((Boolean) args[1]);
+			setFrame(new TakerGUI(this, this.is_autoMode()));
+	    	getFrame().setVisible(true);
+	    	getFrame().setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		}
 		else
 			this.set_Wallet((int) (Math.random() * (MAXMONEY - MINMONEY)) + MINMONEY);
@@ -73,7 +77,7 @@ public class TakerAgent extends Agent {
 
 		setTbf(new ThreadedBehaviourFactory());
 		
-		addBehaviour(getTbf().wrap(new RegisterAtMarket(this, frame)));
+		addBehaviour(getTbf().wrap(new RegisterAtMarket(this, getFrame())));
 		
 	}
 	
@@ -165,6 +169,14 @@ public class TakerAgent extends Agent {
 		this._autoMode = _autoMode;
 	}
 
+	public TakerGUI getFrame() {
+		return frame;
+	}
+
+	public void setFrame(TakerGUI frame) {
+		this.frame = frame;
+	}
+	
 	
 	
 }

@@ -35,6 +35,7 @@ public class Auction implements Serializable, Comparable<Auction> {
 			int _increaseStep, int _decreaseStep, String _name,
 			long timer) {
 		this._initPrice = _initPrice;
+		this._price = _initPrice;
 		this._minPrice = _minPrice;
 		this._increaseStep = _increaseStep;
 		this._decreaseStep = _decreaseStep;
@@ -118,7 +119,7 @@ public class Auction implements Serializable, Comparable<Auction> {
 	}
 	
 	public int decreasePrice(){
-		return this._price = this._price + this._decreaseStep;
+		return this._price = this._price - this._decreaseStep;
 	}
 	
 	public void initBids(){

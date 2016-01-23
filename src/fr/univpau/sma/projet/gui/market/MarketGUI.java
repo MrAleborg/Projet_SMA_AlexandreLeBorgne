@@ -10,6 +10,7 @@ import java.util.List;
 import javax.swing.JFrame;
 
 import fr.univpau.sma.projet.agent.MarketAgent;
+import fr.univpau.sma.projet.gui.dealer.DealerAuctionCreation;
 import fr.univpau.sma.projet.gui.taker.TakerModeChoice;
 import fr.univpau.sma.projet.objects.Auction;
 import fr.univpau.sma.projet.objects.MarketCurrentAuctionsTable;
@@ -202,7 +203,10 @@ public class MarketGUI extends javax.swing.JFrame {
     } 
     
     private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {     
-    	System.out.println("nouveau prenneur");
+    	System.out.println("nouveau vendeur");
+    	DealerAuctionCreation frame = new DealerAuctionCreation(this._agent);
+    	frame.setVisible(true);
+    	frame.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     } 
     
     private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {     

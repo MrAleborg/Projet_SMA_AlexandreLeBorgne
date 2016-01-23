@@ -1,33 +1,28 @@
 package fr.univpau.sma.projet.gui.taker;
 
-import jade.core.AID;
-
-import java.awt.BorderLayout;
-import java.awt.EventQueue;
 import java.awt.HeadlessException;
+import java.awt.Point;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
+import javax.swing.JTable;
 
-import fr.univpau.sma.projet.agent.MarketAgent;
 import fr.univpau.sma.projet.agent.TakerAgent;
 import fr.univpau.sma.projet.objects.Auction;
-import fr.univpau.sma.projet.objects.MarketCurrentAuctionsTable;
-import fr.univpau.sma.projet.objects.MarketPastAuctionsTable;
 import fr.univpau.sma.projet.objects.TakerCurrentAuctionsTable;
 import fr.univpau.sma.projet.objects.TakerPastAuctionsTable;
 
+@SuppressWarnings("serial")
 public class TakerGUI extends JFrame {
 
 //	private JPanel contentPane;
 	
 	List<Auction> _Auctions = new ArrayList<Auction>();
 	List<Auction> _PastAuctions = new ArrayList<Auction>();
-	TakerCurrentAuctionsTable modele;
+	private TakerCurrentAuctionsTable modele;
 	TakerPastAuctionsTable modele1;
 
 	boolean _autoMode = true;
@@ -49,8 +44,16 @@ public class TakerGUI extends JFrame {
 	
 	
     private void initComponents() {
-
-    	this.setTitle("Taker Agent --" + _agent.getLocalName());
+    	
+//    	this.setSize(600, 300);
+    	
+    	String s = "Taker Agent -- " + _agent.getLocalName();
+    	if(this._autoMode)
+    		s += " -- AUTOMATIQUE";
+    	else s += " -- MANUEL";
+    		
+    	
+    	this.setTitle(s);
         jTabbedPane2 = new javax.swing.JTabbedPane();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
@@ -59,8 +62,22 @@ public class TakerGUI extends JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-		modele = new TakerCurrentAuctionsTable(_Auctions);
-		jTable1.setModel(modele);
+		setModele(new TakerCurrentAuctionsTable(_Auctions, _autoMode));
+		jTable1.setModel(getModele());
+		jTable1.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				JTable t = (JTable) e.getSource();
+				Point p = e.getPoint();
+				int row = t.rowAtPoint(p);
+				System.out.println("Click!!");
+				if(e.getClickCount()>=2)
+				{
+					System.out.println("Double Click!! " + row);
+					modele.bidAuctionAt(row);
+				}
+			}
+		});
 		
         jScrollPane1.setViewportView(jTable1);
 
@@ -78,25 +95,24 @@ public class TakerGUI extends JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jTabbedPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 877, Short.MAX_VALUE)
+                .addComponent(jTabbedPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 600, Short.MAX_VALUE)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jTabbedPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 527, Short.MAX_VALUE)
+                .addComponent(jTabbedPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
                 .addContainerGap())
         );
         
         pack();
-        
     }
 	
     public void addAuction(Auction auction)
     {
     	this._Auctions.add(auction);
-    	this.modele.addAuction(auction);
+    	this.getModele().addAuction(auction);
     }
     
     public void removeAuction(Auction auction)
@@ -105,7 +121,7 @@ public class TakerGUI extends JFrame {
     	for(Auction a : _Auctions)
     		if(a.compareTo(auction)==0)
     			i = _Auctions.indexOf(a);
-    	this.modele.removeAuction(i);
+    	this.getModele().removeAuction(i);
     }
     
     public void addPastAuction(Auction a, Boolean g)
@@ -125,8 +141,20 @@ public class TakerGUI extends JFrame {
     			_Auctions.set(_Auctions.indexOf(auct), a);
     		}
     	}
-    	modele.updateAuction();
+    	getModele().updateAuction();
     }
+
+
+	public TakerCurrentAuctionsTable getModele() {
+		return modele;
+	}
+
+
+	public void setModele(TakerCurrentAuctionsTable modele) {
+		this.modele = modele;
+	}
+	
+	
 
 //	/**
 //	 * Launch the application.
