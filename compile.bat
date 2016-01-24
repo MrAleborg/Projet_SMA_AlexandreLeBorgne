@@ -1,0 +1,3 @@
+mkdir bin
+javac -encoding UTF-8 -cp jade.jar -d bin src\fr\univpau\sma\projet\objects\*.java src\fr\univpau\sma\projet\agent\*.java src\fr\univpau\sma\projet\agent\behaviour\market\*.java src\fr\univpau\sma\projet\agent\behaviour\dealer\RegisterAtMarket.java src\fr\univpau\sma\projet\agent\behaviour\dealer\fsm\DealerFSMBehaviour.java src\fr\univpau\sma\projet\agent\behaviour\taker\*.java src\fr\univpau\sma\projet\agent\behaviour\taker\fsm\TakerFSMBehaviour.java src\fr\univpau\sma\projet\gui\dealer\*.java src\fr\univpau\sma\projet\gui\market\MarketGUI.java src\fr\univpau\sma\projet\gui\taker\*.java
+pause
