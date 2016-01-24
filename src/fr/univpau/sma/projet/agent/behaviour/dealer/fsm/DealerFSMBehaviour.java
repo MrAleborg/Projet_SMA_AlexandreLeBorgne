@@ -6,7 +6,6 @@ import java.util.List;
 
 import fr.univpau.sma.projet.agent.DealerAgent;
 import fr.univpau.sma.projet.agent.behaviour.dealer.RegisterAtMarket;
-import fr.univpau.sma.projet.gui.dealer.DealerGUI;
 import fr.univpau.sma.projet.objects.Auction;
 import fr.univpau.sma.projet.objects.ProtocolMessage;
 import jade.core.AID;

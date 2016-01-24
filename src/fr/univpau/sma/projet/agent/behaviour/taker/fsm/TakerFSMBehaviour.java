@@ -3,14 +3,10 @@ package fr.univpau.sma.projet.agent.behaviour.taker.fsm;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Set;
-import java.util.concurrent.CyclicBarrier;
-
 import fr.univpau.sma.projet.agent.TakerAgent;
 import fr.univpau.sma.projet.objects.Auction;
 import fr.univpau.sma.projet.objects.ProtocolMessage;
-import jade.core.NotFoundException;
 import jade.core.behaviours.Behaviour;
-import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.FSMBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.MessageTemplate;
@@ -22,6 +18,7 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 	private Auction _Auction;
 	private TakerAgent takerAgent;
 	private waitForUserBid _wfub = null;
+	private int _lastPrice = 0;
 
 	//	private static final String register = "registerAtMarket";
 	//	private static final String waitforauction = "waitForAuction";
@@ -143,7 +140,12 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 		@Override
 		public void action() {
 			System.out.println("Taker réfléchit pour savoir si il va lever la main");
-			if(_Auction.get_price()<=takerAgent.get_Wallet() && takerAgent.is_autoMode())
+			
+			int wallet = takerAgent.get_Wallet();
+			
+			
+//			if(_Auction.get_price()<=takerAgent.get_Wallet() && takerAgent.is_autoMode())
+			if(wallet+_lastPrice-_Auction.get_price()>=0 && takerAgent.is_autoMode())
 			{
 				System.out.println(takerAgent.getLocalName() + " se décide à lever le bras");
 				takerBids = new ProtocolMessage();
@@ -152,12 +154,16 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 				try {
 					takerBids.setContentObject(_Auction);
 					takerAgent.send(takerBids);
+					takerAgent.set_Wallet(wallet+_lastPrice-_Auction.get_price());
+					takerAgent.getFrame().updateMoneyLeft();
+					_lastPrice = _Auction.get_price();
 				} catch (IOException e) {
 					System.out.println(takerAgent.getLocalName() + " n'a pas pu bider");
 					e.printStackTrace();
 				}
 			}
-			else if(_Auction.get_price()<=takerAgent.get_Wallet() && !takerAgent.is_autoMode())
+//			else if(_Auction.get_price()<=takerAgent.get_Wallet() && !takerAgent.is_autoMode())
+			else if(wallet+_lastPrice-_Auction.get_price()>=0 && !takerAgent.is_autoMode())
 			{
 				System.out.println("avant WFUB");
 				_wfub = new waitForUserBid();
@@ -175,6 +181,7 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 		
 		@Override
 		public void action() {
+			int wallet = takerAgent.get_Wallet();
 			Set<Auction> la = takerAgent.getFrame().getModele().get_mappingAuctionBid().keySet();
 			for(Auction a : la)
 				if(_Auction.compareTo(a)==0)
@@ -187,6 +194,9 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 						try {
 							takerBids.setContentObject(_Auction);
 							takerAgent.send(takerBids);
+							takerAgent.set_Wallet(wallet+_lastPrice-_Auction.get_price());
+							takerAgent.getFrame().updateMoneyLeft();
+							_lastPrice = _Auction.get_price();
 							done=true;
 						} catch (IOException e) {
 							System.out.println(takerAgent.getLocalName() + " n'a pas pu bider");
@@ -254,9 +264,9 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 			if(takerAgent.get_WonAuctions() == null)
 				takerAgent.set_WonAuctions(new ArrayList<Auction>());
 			takerAgent.get_WonAuctions().add(_Auction);
-			takerAgent.set_Wallet(takerAgent.get_Wallet()-_Auction.get_price());
+//			takerAgent.set_Wallet(takerAgent.get_Wallet()-_Auction.get_price());
 			takerAgent.getFrame().addPastAuction(_Auction, true);
-			takerAgent.getFrame().updateMoneyLeft();
+//			takerAgent.getFrame().updateMoneyLeft();
 		}
 
 		//		@Override
@@ -276,6 +286,8 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 				takerAgent.set_LostAuctions(new ArrayList<Auction>());
 			takerAgent.get_LostAuctions().add(_Auction);
 			takerAgent.getFrame().addPastAuction(_Auction, false);
+			takerAgent.set_Wallet(takerAgent.get_Wallet()+_lastPrice);
+			takerAgent.getFrame().updateMoneyLeft();
 		}
 
 	}

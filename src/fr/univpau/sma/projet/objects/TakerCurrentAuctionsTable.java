@@ -13,6 +13,7 @@ public class TakerCurrentAuctionsTable extends AbstractTableModel {
 	boolean auto;
 	List<Auction> _Auctions = new ArrayList<Auction>();
 	private HashMap<Auction, Boolean> _mappingAuctionBid = new HashMap<Auction, Boolean>();
+	private int globalWallet = 0;
 
 	public TakerCurrentAuctionsTable(List<Auction> _Auctions, boolean auto) {
 		super();
@@ -84,10 +85,15 @@ public class TakerCurrentAuctionsTable extends AbstractTableModel {
 
 	public void updateAuction(Auction auct)
 	{
-//		for(Auction a : _mappingAuctionBid.keySet())
-//			for(Auction auction : _Auctions)
-//				if(auction.compareTo(a)==0)
-		_mappingAuctionBid.replace(auct, false);
+		for(Auction a : _mappingAuctionBid.keySet())
+		{
+			if(auct.equals(a))
+			{
+				System.out.println("update auction spoted");
+				_mappingAuctionBid.replace(a, Boolean.FALSE);
+			}
+		}
+//		_mappingAuctionBid.put(auct, false);
 		fireTableDataChanged();
 	}
 
@@ -106,6 +112,14 @@ public class TakerCurrentAuctionsTable extends AbstractTableModel {
 				if(_Auctions.get(i).compareTo(a)==0)
 					this._mappingAuctionBid.replace(a, true);
 		fireTableDataChanged();
+	}
+
+	public int getGlobalWallet() {
+		return globalWallet;
+	}
+
+	public void setGlobalWallet(int globalWallet) {
+		this.globalWallet = globalWallet;
 	}
 	
 }

@@ -9,7 +9,6 @@ import fr.univpau.sma.projet.gui.taker.TakerGUI;
 import fr.univpau.sma.projet.objects.Auction;
 import jade.core.AID;
 import jade.core.Agent;
-import jade.core.MessageQueue;
 import jade.core.behaviours.FSMBehaviour;
 import jade.core.behaviours.ParallelBehaviour;
 import jade.core.behaviours.ThreadedBehaviourFactory;
@@ -17,8 +16,6 @@ import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
-import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
 
 @SuppressWarnings("serial")
 public class TakerAgent extends Agent {

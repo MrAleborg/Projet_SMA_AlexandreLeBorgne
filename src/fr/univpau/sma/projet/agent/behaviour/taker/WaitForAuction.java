@@ -2,7 +2,6 @@ package fr.univpau.sma.projet.agent.behaviour.taker;
 
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
-import jade.domain.mobility.BehaviourLoadingVocabulary;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 
@@ -25,7 +24,6 @@ public class WaitForAuction extends CyclicBehaviour {
 	 */
 	private TakerAgent takerAgent;
 	private TakerGUI takerGUI;
-	private WaitForUserSelection wfus = null;
 	/**
 	 * @param takerAgent
 	 */
