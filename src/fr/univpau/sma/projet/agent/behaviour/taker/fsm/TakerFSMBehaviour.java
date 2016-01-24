@@ -80,17 +80,22 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 
 			ProtocolMessage p1 = new ProtocolMessage();
 			ProtocolMessage p2 = new ProtocolMessage();
+			ProtocolMessage p3 = new ProtocolMessage();
 			try {
 				p1.setContentObject(_Auction);
 				p1.setPerformative(ProtocolMessage.toAnnounce);
 				p2.setContentObject(_Auction);
 				p2.setPerformative(ProtocolMessage.toAttribute);
+				p3.setContentObject(_Auction);
+				p3.setPerformative(ProtocolMessage.toWithdraw);
 				MessageTemplate t1 = MessageTemplate.MatchPerformative(ProtocolMessage.toAnnounce);
 				MessageTemplate t2 = MessageTemplate.MatchPerformative(ProtocolMessage.toAttribute);
+				MessageTemplate t3 = MessageTemplate.MatchPerformative(ProtocolMessage.toWithdraw);
 				t1.match(p1);
 				t2.match(p2);
+				t3.match(p3);
 
-				announce = (ProtocolMessage) takerAgent.blockingReceive(MessageTemplate.or(t1, t2));
+				announce = (ProtocolMessage) takerAgent.blockingReceive(MessageTemplate.or(t1, MessageTemplate.or(t2, t3)));
 				if(_wfub != null)
 					_wfub=null;
 			} catch (IOException e1) {
@@ -121,7 +126,7 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 
 		@Override
 		public int onEnd() {
-			if(announce.getPerformative()==ProtocolMessage.toAttribute && !winAuction)
+			if((announce.getPerformative()==ProtocolMessage.toAttribute || announce.getPerformative()==ProtocolMessage.toWithdraw) && !winAuction)
 			{
 				return YOULOSE;
 			}
@@ -170,7 +175,6 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 		
 		@Override
 		public void action() {
-			System.out.println("dans WFUB");
 			Set<Auction> la = takerAgent.getFrame().getModele().get_mappingAuctionBid().keySet();
 			for(Auction a : la)
 				if(_Auction.compareTo(a)==0)
@@ -252,6 +256,7 @@ public class TakerFSMBehaviour extends FSMBehaviour {
 			takerAgent.get_WonAuctions().add(_Auction);
 			takerAgent.set_Wallet(takerAgent.get_Wallet()-_Auction.get_price());
 			takerAgent.getFrame().addPastAuction(_Auction, true);
+			takerAgent.getFrame().updateMoneyLeft();
 		}
 
 		//		@Override

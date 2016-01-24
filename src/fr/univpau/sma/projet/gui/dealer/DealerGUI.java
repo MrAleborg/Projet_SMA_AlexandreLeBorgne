@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -13,11 +14,13 @@ import javax.swing.border.EmptyBorder;
 import fr.univpau.sma.projet.agent.DealerAgent;
 import fr.univpau.sma.projet.agent.MarketAgent;
 import fr.univpau.sma.projet.objects.Auction;
+import fr.univpau.sma.projet.objects.DealerTakerTable;
 
 public class DealerGUI extends JFrame {
 
 	private JPanel contentPane;
 	private Auction proposedAuction;
+    DealerTakerTable modele = new DealerTakerTable();
 	
 	DealerAgent _agent;
 	
@@ -77,17 +80,8 @@ public class DealerGUI extends JFrame {
 
      jLabel7.setText("Bids");
 
-     jTable1.setModel(new javax.swing.table.DefaultTableModel(
-         new Object [][] {
-             {null},
-             {null},
-             {null},
-             {null}
-         },
-         new String [] {
-             "Prenneurs inscrits"
-         }
-     ));
+     
+     jTable1.setModel(modele);
      
      jScrollPane1.setViewportView(jTable1);
 
@@ -224,6 +218,23 @@ public class DealerGUI extends JFrame {
  {
 	 jLabel10.setText(""+i);
  }
+ 
+	public void addBidder(String s) {
+
+		modele.addBidder(s);
+
+	}
+
+	public void removeBidder(int rowIndex) {
+		
+		modele.removeBidder(rowIndex);
+
+	}
+	
+	public void initBidders()
+	{
+		modele.initBidders();
+	}
 
  // Variables declaration - do not modify                     
  private javax.swing.JLabel jLabel1;

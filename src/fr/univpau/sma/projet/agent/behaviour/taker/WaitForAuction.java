@@ -1,6 +1,8 @@
 package fr.univpau.sma.projet.agent.behaviour.taker;
 
+import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
+import jade.domain.mobility.BehaviourLoadingVocabulary;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 
@@ -23,12 +25,14 @@ public class WaitForAuction extends CyclicBehaviour {
 	 */
 	private TakerAgent takerAgent;
 	private TakerGUI takerGUI;
+	private WaitForUserSelection wfus = null;
 	/**
 	 * @param takerAgent
 	 */
 	WaitForAuction(TakerAgent takerAgent, TakerGUI takerGUI) {
 		this.takerAgent = takerAgent;
 		this.takerGUI = takerGUI;
+		
 	}
 
 	@SuppressWarnings("unchecked")
@@ -41,6 +45,7 @@ public class WaitForAuction extends CyclicBehaviour {
 		m = (ProtocolMessage) this.takerAgent.blockingReceive(MessageTemplate.MatchPerformative(ProtocolMessage.auctionSpotted));
 		if(m!=null)
 		{
+			
 			System.out.println("Taker récupère les enchères");
 			List<Auction> listOfAuctions = new ArrayList<Auction>();
 			try {
@@ -60,11 +65,11 @@ public class WaitForAuction extends CyclicBehaviour {
 								if(listOfAuctions.get(i).compareTo(auction) == 0)
 								{
 									listOfAuctions.remove(i);
-								}
+								}								
 							}
 						}
 //						this.takerAgent.set_Auctions(listOfAuctions);
-						this.takerAgent.setLower(0);
+//						this.takerAgent.setLower(0);
 					}
 					else
 					{
@@ -72,23 +77,19 @@ public class WaitForAuction extends CyclicBehaviour {
 						chosenAuctions = new ArrayList<Auction>();
 					}
 
-					System.out.println("AUCTIONS 1 --> " + listOfAuctions.size());
-					int nbAuctionToSubscribe = (int) (Math.random() * (listOfAuctions.size()-this.takerAgent.getLower())) + this.takerAgent.getLower();
-					List<Auction> tempList = new ArrayList<Auction>();
-					int i=0;
-					while(i<nbAuctionToSubscribe)
-					{
-						int auctionToSubscribe = (int) (Math.random() * (listOfAuctions.size()-1) +1);
-						if(!tempList.contains(listOfAuctions.get(auctionToSubscribe-1)))
-						{
-							tempList.add(listOfAuctions.get(auctionToSubscribe-1));
-						}
-						i++;
-					}
+//					System.out.println("AUCTIONS 1 --> " + listOfAuctions.size());
+//					int nbAuctionToSubscribe = (int) (Math.random() * (listOfAuctions.size()-this.takerAgent.getLower())) + this.takerAgent.getLower();
+					List<Auction> tempList = listOfAuctions;
+					
+					for(Auction a : tempList)
+						if(!takerAgent.is_autoMode())
+							this.takerAgent.getFrame().addAuctionToSubscribe(a);
+					
+
 					this.takerAgent.get_ChosenAuctions().addAll(tempList);
 					
 									
-					if(!tempList.isEmpty())
+					if(!tempList.isEmpty() && this.takerAgent.is_autoMode())
 					{
 						// Envoi du message de souscription aux enchères choisies
 						ProtocolMessage subscription = new ProtocolMessage();
@@ -113,6 +114,17 @@ public class WaitForAuction extends CyclicBehaviour {
 							this.takerAgent.addBehaviour(this.takerAgent.getTbf().wrap(new TakerFSMBehaviour(takerAgent, auction)));
 						}
 					}
+					else if(!tempList.isEmpty() && !this.takerAgent.is_autoMode())
+					{
+						System.out.println("Selection manuelle");
+						this.takerAgent.set_Auctions(tempList);
+						for(Auction a : takerGUI.getModele2().get_mappingAuctionChosen().keySet())
+							for(Auction auction : tempList)
+							{
+								if(a.compareTo(auction)==0)
+									this.takerAgent.addBehaviour(this.takerAgent.getTbf().wrap(new WaitForUserSelection(auction, a)));
+							}
+					}
 				}
 				else System.out.println("_Auctions is EMPTY!!!");
 
@@ -124,6 +136,50 @@ public class WaitForAuction extends CyclicBehaviour {
 			}
 			
 						
+		}
+		
+	}
+	
+	private class WaitForUserSelection extends Behaviour {
+
+		boolean done = false;
+		private Auction _auction;
+		private Auction _a;
+		
+		public WaitForUserSelection(Auction auction, Auction a) {
+			_auction = auction;
+			_a = a;
+		}
+		
+		@Override
+		public void action() {
+			if(takerGUI.getModele2().get_mappingAuctionChosen().get(_a))
+			{
+				// Envoi du message de souscription aux enchères choisies
+				ProtocolMessage subscription = new ProtocolMessage();
+				subscription.setPerformative(ProtocolMessage.takerSubscribed);
+				try {
+					List<Auction> templist = new ArrayList<Auction>();
+					templist.add(_auction);
+					subscription.setContentObject((Serializable) templist);
+					subscription.addReceiver(takerAgent.get_market());
+					takerAgent.send(subscription);
+				} catch (IOException e) {
+					System.out.println("Le message de souscription n'a pas pu être envoyé");
+					e.printStackTrace();
+				}
+
+				takerGUI.addAuction(_a);
+//				takerAgent.get_ChosenAuctions().add(_auction);
+				System.out.println("création des fsm du client : " + _auction.get_dealerName());
+				takerAgent.addBehaviour(takerAgent.getTbf().wrap(new TakerFSMBehaviour(takerAgent, _auction)));
+				done = true;
+			}
+		}
+
+		@Override
+		public boolean done() {
+			return done;
 		}
 		
 	}

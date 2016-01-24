@@ -12,6 +12,7 @@ import javax.swing.JTable;
 
 import fr.univpau.sma.projet.agent.TakerAgent;
 import fr.univpau.sma.projet.objects.Auction;
+import fr.univpau.sma.projet.objects.TakerAuctionSelectionTable;
 import fr.univpau.sma.projet.objects.TakerCurrentAuctionsTable;
 import fr.univpau.sma.projet.objects.TakerPastAuctionsTable;
 
@@ -24,6 +25,7 @@ public class TakerGUI extends JFrame {
 	List<Auction> _PastAuctions = new ArrayList<Auction>();
 	private TakerCurrentAuctionsTable modele;
 	TakerPastAuctionsTable modele1;
+	private TakerAuctionSelectionTable modele2;   
 
 	boolean _autoMode = true;
 	TakerAgent _agent;
@@ -31,9 +33,13 @@ public class TakerGUI extends JFrame {
     
 	private javax.swing.JScrollPane jScrollPane1;
 	private javax.swing.JScrollPane jScrollPane2;
+	private javax.swing.JScrollPane jScrollPane3;
 	private javax.swing.JTabbedPane jTabbedPane2;
 	private javax.swing.JTable jTable1;
 	private javax.swing.JTable jTable2;
+	private javax.swing.JTable jTable3;             
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
 	
 	public TakerGUI(TakerAgent _agent, boolean _autoMode)
 			throws HeadlessException {
@@ -44,8 +50,6 @@ public class TakerGUI extends JFrame {
 	
 	
     private void initComponents() {
-    	
-//    	this.setSize(600, 300);
     	
     	String s = "Taker Agent -- " + _agent.getLocalName();
     	if(this._autoMode)
@@ -59,6 +63,10 @@ public class TakerGUI extends JFrame {
         jTable1 = new javax.swing.JTable();
         jScrollPane2 = new javax.swing.JScrollPane();
         jTable2 = new javax.swing.JTable();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        jTable3 = new javax.swing.JTable();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -88,22 +96,59 @@ public class TakerGUI extends JFrame {
         jScrollPane2.setViewportView(jTable2);
 
         jTabbedPane2.addTab("Enchères terminées", jScrollPane2);
+        
+        if(!this._autoMode)
+        {
+        	setModele2(new TakerAuctionSelectionTable());
+        	jTable3.setModel(getModele2());
+        	jTable3.addMouseListener(new MouseAdapter() {
+    			@Override
+    			public void mousePressed(MouseEvent e) {
+    				JTable t = (JTable) e.getSource();
+    				Point p = e.getPoint();
+    				int row = t.rowAtPoint(p);
+    				System.out.println("Click!!");
+    				if(e.getClickCount()>=2)
+    				{
+    					System.out.println("Double Click!! " + row);
+    					modele2.ChoseAuctionAt(row);
+    				}
+    			}
+    		});
+        	jScrollPane3.setViewportView(jTable3);
+        	jTabbedPane2.addTab("Incriptions", jScrollPane3);
+        
+        }
+        
+        jLabel1.setText("Argent restant");
+
+        jLabel2.setText(""+this._agent.get_Wallet());
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jTabbedPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 600, Short.MAX_VALUE)
-                .addContainerGap())
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createSequentialGroup()
+                    .addContainerGap()
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jTabbedPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 576, Short.MAX_VALUE)
+                        .addGroup(layout.createSequentialGroup()
+                            .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGap(42, 42, 42)
+                            .addComponent(jLabel2)
+                            .addGap(0, 0, Short.MAX_VALUE)))
+                    .addContainerGap())
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jTabbedPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
-                .addContainerGap())
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createSequentialGroup()
+                    .addContainerGap()
+                    .addComponent(jTabbedPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 147, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 44, Short.MAX_VALUE)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel1)
+                        .addComponent(jLabel2))
+                    .addContainerGap())
         );
         
         pack();
@@ -111,7 +156,7 @@ public class TakerGUI extends JFrame {
 	
     public void addAuction(Auction auction)
     {
-    	this._Auctions.add(auction);
+//    	this._Auctions.add(auction);
     	this.getModele().addAuction(auction);
     }
     
@@ -121,7 +166,8 @@ public class TakerGUI extends JFrame {
     	for(Auction a : _Auctions)
     		if(a.compareTo(auction)==0)
     			i = _Auctions.indexOf(a);
-    	this.getModele().removeAuction(i);
+    	if(i>-1)
+    		this.getModele().removeAuction(i);
     }
     
     public void addPastAuction(Auction a, Boolean g)
@@ -141,7 +187,8 @@ public class TakerGUI extends JFrame {
     			_Auctions.set(_Auctions.indexOf(auct), a);
     		}
     	}
-    	getModele().updateAuction();
+
+    	getModele().updateAuction(a);
     }
 
 
@@ -153,40 +200,26 @@ public class TakerGUI extends JFrame {
 	public void setModele(TakerCurrentAuctionsTable modele) {
 		this.modele = modele;
 	}
-	
-	
 
-//	/**
-//	 * Launch the application.
-//	 */
-//	public static void main(String[] args) {
-//		EventQueue.invokeLater(new Runnable() {
-//			public void run() {
-//				try {
-//					TakerGUI frame = new TakerGUI();
-//					frame.setVisible(true);
-//				} catch (Exception e) {
-//					e.printStackTrace();
-//				}
-//			}
-//		});
-//	}
 
-//	/**
-//	 * Create the frame.
-//	 */
-//	public TakerGUI() {
-//		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//		setBounds(100, 100, 450, 300);
-//		contentPane = new JPanel();
-//		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-//		contentPane.setLayout(new BorderLayout(0, 0));
-//		setContentPane(contentPane);
-//	}
+	public TakerAuctionSelectionTable getModele2() {
+		return modele2;
+	}
+
+
+	public void setModele2(TakerAuctionSelectionTable modele2) {
+		this.modele2 = modele2;
+	}
 	
-//	public TakerGUI()
-//	{
-//        initComponents();
-//	}
+	public void addAuctionToSubscribe(Auction a)
+	{
+		this.modele2.addAuction(a);
+	}
+	
+	public void updateMoneyLeft()
+	{
+        jLabel2.setText(""+this._agent.get_Wallet());
+	}
+	
 
 }

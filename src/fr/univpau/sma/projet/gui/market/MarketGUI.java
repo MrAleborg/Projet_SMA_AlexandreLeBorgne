@@ -66,7 +66,8 @@ public class MarketGUI extends javax.swing.JFrame {
     	for(Auction a : _Auctions)
     		if(a.compareTo(auction)==0)
     			i = _Auctions.indexOf(a);
-    	this.modele.removeAuction(i);
+    	if(i>-1)
+    		this.modele.removeAuction(i);
     }
 
     public void addParticipating(AID tak, Auction auc)
@@ -103,6 +104,7 @@ public class MarketGUI extends javax.swing.JFrame {
     	}
     	modele.updateAuction();
     }
+    
 
     /**
      * This method is called from within the constructor to initialize the form.

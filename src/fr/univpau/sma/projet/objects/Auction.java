@@ -114,6 +114,21 @@ public class Auction implements Serializable, Comparable<Auction> {
 				0 : -1;
 	}
 	
+	@Override
+	public boolean equals(Object obj) {
+		try
+		{
+			if(this.compareTo((Auction) obj)==0)
+				return true;
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			return false;
+		}
+		return false;
+	}
+	
 	public int increasePrice(){
 		return this._price = this._price + this._increaseStep;
 	}

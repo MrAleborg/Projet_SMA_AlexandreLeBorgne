@@ -1,12 +1,9 @@
 package fr.univpau.sma.projet.objects;
 
-import java.awt.Button;
-import java.awt.Checkbox;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.swing.JButton;
 import javax.swing.table.AbstractTableModel;
 
 @SuppressWarnings("serial")
@@ -71,10 +68,8 @@ public class TakerCurrentAuctionsTable extends AbstractTableModel {
 
 	public void addAuction(Auction a) {
 
-		//      _Auctions.add(a);
-		for(int i=0 ; i<_Auctions.size(); i++)
-			if(a.compareTo(_Auctions.get(i))==0)
-				this._mappingAuctionBid.put(_Auctions.get(i), false);
+		_Auctions.add(a);
+		this._mappingAuctionBid.put(a, false);
 		fireTableDataChanged();
 	}
 
@@ -87,10 +82,12 @@ public class TakerCurrentAuctionsTable extends AbstractTableModel {
 
 	}
 
-	public void updateAuction()
+	public void updateAuction(Auction auct)
 	{
-		for(Auction a : _mappingAuctionBid.keySet())
-			_mappingAuctionBid.replace(a, false);
+//		for(Auction a : _mappingAuctionBid.keySet())
+//			for(Auction auction : _Auctions)
+//				if(auction.compareTo(a)==0)
+		_mappingAuctionBid.replace(auct, false);
 		fireTableDataChanged();
 	}
 
@@ -104,9 +101,10 @@ public class TakerCurrentAuctionsTable extends AbstractTableModel {
 
 	public void bidAuctionAt(int i)
 	{
-		for(Auction a : _mappingAuctionBid.keySet())
-			if(_Auctions.get(i).compareTo(a)==0)
-				this._mappingAuctionBid.replace(a, true);
+		if(_Auctions.get(i).get_price()>=_Auctions.get(i).get_minPrice())
+			for(Auction a : _mappingAuctionBid.keySet())
+				if(_Auctions.get(i).compareTo(a)==0)
+					this._mappingAuctionBid.replace(a, true);
 		fireTableDataChanged();
 	}
 	

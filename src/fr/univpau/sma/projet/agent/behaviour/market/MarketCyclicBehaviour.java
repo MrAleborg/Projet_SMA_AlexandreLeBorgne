@@ -267,6 +267,31 @@ public class MarketCyclicBehaviour extends CyclicBehaviour {
 					if(la.get(i).compareTo(auction)==0)
 						la.remove(i);
 				break;
+			case ProtocolMessage.toWithdraw:
+				message.clearAllReceiver();
+				try {
+					auction = (Auction) message.getContentObject();
+					if(message.getContentObject() == null)
+						System.out.println("ContentObject = null");
+				} catch (UnreadableException e) {
+					e.printStackTrace();
+				}
+				List<AID> receivers2 = message.get_Takers();
+				if(!receivers2.isEmpty())
+				{
+					for (AID r : receivers2)
+					{
+						System.out.println("market prepare la notification d'annulation de l'enchère de " + sender.getLocalName() );
+						message.addReceiver(r);
+					}
+					this._marketAgent.send(message);
+				}
+				this._marketGUI.addPastAuction(auction, message.get_Message());
+				List<Auction> la1 = this._marketAgent.get_Auctions();
+				for(int i = 0 ; i < la1.size() ; i++)
+					if(la1.get(i).compareTo(auction)==0)
+						la1.remove(i);
+				break;
 			default:
 				System.out.println("Le Market n'a pas su traiter le message");
 				break;
